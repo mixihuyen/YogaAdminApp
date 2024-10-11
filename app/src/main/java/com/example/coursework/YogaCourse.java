@@ -9,8 +9,9 @@ public class YogaCourse {
     private double price;
     private String type;
     private String description;
+    private String imageUrl; // Thêm trường ảnh
 
-    public YogaCourse(int id, String dayOfWeek, String time, int capacity, int duration, double price, String type, String description) {
+    public YogaCourse(int id, String dayOfWeek, String time, int capacity, int duration, double price, String type, String description, String imageUrl) {
         this.id = id;
         this.dayOfWeek = dayOfWeek;
         this.time = time;
@@ -19,14 +20,14 @@ public class YogaCourse {
         this.price = price;
         this.type = type;
         this.description = description;
+        this.imageUrl = imageUrl;
     }
 
-    // Getter cho id
+    // Getter và Setter cho tất cả các thuộc tính, bao gồm imageUrl
     public int getId() {
         return id;
     }
 
-    // Getter và setter cho các thuộc tính khác
     public String getDayOfWeek() {
         return dayOfWeek;
     }
@@ -83,7 +84,14 @@ public class YogaCourse {
         this.description = description;
     }
 
-    // Override phương thức toString() để hiển thị thông tin yoga class
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
+
     @Override
     public String toString() {
         return type + " on " + dayOfWeek + " at " + time;

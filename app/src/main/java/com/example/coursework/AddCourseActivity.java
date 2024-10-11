@@ -1,30 +1,41 @@
 package com.example.coursework;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
-import android.view.View;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
-import androidx.appcompat.app.AppCompatActivity;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.List;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class AddCourseActivity extends AppCompatActivity {
+    private static final int PICK_IMAGE_REQUEST = 1;
 
     private EditText etDayOfWeek, etTimeOfCourse, etCapacity, etDuration, etPrice, etTypeOfClass, etDescription;
-    private Button btnSubmit, btnUpload;
-    private YogaClassDAO dao;
-    private FirebaseDatabase firebaseDatabase;
-    private DatabaseReference databaseReference;
+    private Button btnSubmit, btnSelectImage;
+    private ImageView ivSelectedImage;
+    private Uri imageUri;
+    private YogaCourseDAO dao;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_course);
 
+        // Khởi tạo các thành phần giao diện
         etDayOfWeek = findViewById(R.id.etDayOfWeek);
         etTimeOfCourse = findViewById(R.id.etTimeOfCourse);
         etCapacity = findViewById(R.id.etCapacity);
@@ -33,31 +44,99 @@ public class AddCourseActivity extends AppCompatActivity {
         etTypeOfClass = findViewById(R.id.etTypeOfClass);
         etDescription = findViewById(R.id.etDescription);
         btnSubmit = findViewById(R.id.btnSubmit);
-        btnUpload = findViewById(R.id.btnUpload);
+        btnSelectImage = findViewById(R.id.btnSelectImage);
+        ivSelectedImage = findViewById(R.id.ivSelectedImage);
 
-        dao = new YogaClassDAO(this);
+        // Khởi tạo DAO để lưu vào local database
+        dao = new YogaCourseDAO(this);
 
-        // Khởi tạo Firebase Database
-        firebaseDatabase = FirebaseDatabase.getInstance();
-        databaseReference = firebaseDatabase.getReference("yoga_classes");
+        // Xử lý nút chọn ảnh
+        btnSelectImage.setOnClickListener(v -> openFileChooser());
 
-        btnSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (validateFields()) {
-                    // Lưu thông tin yoga class vào SQLite
-                    saveYogaClassToLocalDatabase();
+        // Xử lý nút lưu thông tin khóa học
+        btnSubmit.setOnClickListener(v -> {
+            if (validateFields()) {
+                if (imageUri != null) {
+                    try {
+                        InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                        Bitmap selectedImage = BitmapFactory.decodeStream(inputStream);
+                        String imagePath = saveImageToInternalStorage(selectedImage);
+                        if (imagePath != null) {
+                            saveYogaClassToLocalDatabase(imagePath);
+                        }
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        Toast.makeText(this, "Failed to save image locally", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
+                    saveYogaClassToLocalDatabase(null);
                 }
             }
         });
+    }
 
-        btnUpload.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Tải dữ liệu lên Firebase
-                uploadYogaClassesToFirebase();
+    private void openFileChooser() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            imageUri = data.getData();
+            try {
+                InputStream inputStream = getContentResolver().openInputStream(imageUri);
+                Bitmap selectedImage = BitmapFactory.decodeStream(inputStream);
+                ivSelectedImage.setImageBitmap(selectedImage);
+            } catch (IOException e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
             }
-        });
+        }
+    }
+
+    private String saveImageToInternalStorage(Bitmap bitmap) {
+        try {
+            String fileName = "yoga_course_" + System.currentTimeMillis() + ".jpg";
+            File file = new File(getFilesDir(), fileName);
+            FileOutputStream fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.close();
+            return file.getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private void saveYogaClassToLocalDatabase(@Nullable String imagePath) {
+        try {
+            String dayOfWeek = etDayOfWeek.getText().toString();
+            String time = etTimeOfCourse.getText().toString();
+            int capacity = Integer.parseInt(etCapacity.getText().toString());
+            int duration = Integer.parseInt(etDuration.getText().toString());
+            double price = Double.parseDouble(etPrice.getText().toString());
+            String type = etTypeOfClass.getText().toString();
+            String description = etDescription.getText().toString();
+
+            // Lưu khóa học vào cơ sở dữ liệu
+            dao.insertYogaCourse(dayOfWeek, time, capacity, duration, price, type, description, imagePath);
+
+            Toast.makeText(this, "Course added successfully!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(AddCourseActivity.this, MainActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Please enter valid numbers for capacity, duration, and price.", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "An unexpected error occurred: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private boolean validateFields() {
@@ -88,29 +167,9 @@ public class AddCourseActivity extends AppCompatActivity {
         return true;
     }
 
-    private void saveYogaClassToLocalDatabase() {
-        String dayOfWeek = etDayOfWeek.getText().toString();
-        String time = etTimeOfCourse.getText().toString();
-        int capacity = Integer.parseInt(etCapacity.getText().toString());
-        int duration = Integer.parseInt(etDuration.getText().toString());
-        double price = Double.parseDouble(etPrice.getText().toString());
-        String type = etTypeOfClass.getText().toString();
-        String description = etDescription.getText().toString();
-
-        dao.insertYogaClass(dayOfWeek, time, capacity, duration, price, type, description);
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         dao.close();
-
-        Toast.makeText(AddCourseActivity.this, "Yoga class saved locally!", Toast.LENGTH_LONG).show();
-    }
-
-    private void uploadYogaClassesToFirebase() {
-        List<YogaCourse> yogaClasses = dao.getAllYogaClasses();
-
-        for (YogaCourse yogaClass : yogaClasses) {
-            String key = databaseReference.push().getKey();
-            databaseReference.child(key).setValue(yogaClass);
-        }
-
-        Toast.makeText(AddCourseActivity.this, "All classes uploaded to Firebase!", Toast.LENGTH_LONG).show();
     }
 }

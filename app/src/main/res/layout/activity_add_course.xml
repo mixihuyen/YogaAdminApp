@@ -1,69 +1,75 @@
-<?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:padding="16dp">
 
-    <EditText
-        android:id="@+id/etDayOfWeek"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Day of the week (e.g. Monday)"
-        android:inputType="text" />
+        android:orientation="vertical">
 
-    <EditText
-        android:id="@+id/etTimeOfCourse"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Time of course (e.g. 10:00)"
-        android:inputType="time" />
+        <EditText
+            android:id="@+id/etDayOfWeek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Day of the week (e.g. Monday)" />
 
-    <EditText
-        android:id="@+id/etCapacity"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Capacity"
-        android:inputType="number" />
+        <EditText
+            android:id="@+id/etTimeOfCourse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Time of course (e.g. 10:00)" />
 
-    <EditText
-        android:id="@+id/etDuration"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Duration (e.g. 60 minutes)"
-        android:inputType="number" />
+        <EditText
+            android:id="@+id/etCapacity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Capacity" />
 
-    <EditText
-        android:id="@+id/etPrice"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Price per class (e.g. £10)"
-        android:inputType="numberDecimal" />
+        <EditText
+            android:id="@+id/etDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Duration (e.g. 60 minutes)" />
 
-    <EditText
-        android:id="@+id/etTypeOfClass"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Type of class (e.g. Flow Yoga, Aerial Yoga)"
-        android:inputType="text" />
+        <EditText
+            android:id="@+id/etPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Price per class (e.g. £10)" />
 
-    <EditText
-        android:id="@+id/etDescription"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Description (optional)"
-        android:inputType="text" />
+        <EditText
+            android:id="@+id/etTypeOfClass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Type of class (e.g. Flow Yoga, Aerial Yoga)" />
 
-    <Button
-        android:id="@+id/btnSubmit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Submit" />
+        <EditText
+            android:id="@+id/etDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description (optional)" />
 
-    <!-- Thêm nút upload -->
-    <Button
-        android:id="@+id/btnUpload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Upload to Firebase" />
-</LinearLayout>
+        <ImageView
+            android:id="@+id/ivSelectedImage"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginTop="16dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_placeholder" />
+
+        <Button
+            android:id="@+id/btnSelectImage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Image" />
+
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Submit" />
+
+
+    </LinearLayout>
+</ScrollView>

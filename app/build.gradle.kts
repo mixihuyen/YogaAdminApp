@@ -33,13 +33,18 @@ android {
 }
 
 dependencies {
-
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     implementation(libs.firebase.database)
     implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
+    implementation("io.coil-kt:coil:2.0.0")
+    implementation ("com.google.android.gms:play-services-base:17.6.0")
+    implementation ("com.google.firebase:firebase-storage:20.0.0")
+    implementation ("com.google.firebase:firebase-auth:21.1.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

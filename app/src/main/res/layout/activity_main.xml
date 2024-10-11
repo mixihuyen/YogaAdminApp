@@ -1,24 +1,41 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/btnAddClass"
+    <!-- Thanh tìm kiếm -->
+    <EditText
+        android:id="@+id/searchBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add Yoga Course" />
+        android:hint="Search..."
+        android:drawableEnd="@drawable/ic_search"
+        android:padding="8dp" />
 
-    <Button
-        android:id="@+id/btnViewClasses"
+    <!-- GridLayout hiển thị các khóa học -->
+    <GridLayout
+        android:id="@+id/gridLayoutCourses"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="View All Courses" />
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:columnCount="2"
+        android:orientation="horizontal"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="center">
+        <!-- Các phần tử trong GridLayout sẽ được thêm động trong code -->
+    </GridLayout>
 
-    <Button
-        android:id="@+id/btnSyncWithFirebase"
-        android:layout_width="match_parent"
+    <!-- Nút thêm khóa học -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddCourse"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Sync with Firebase" />
+        android:layout_gravity="end"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add"
+        android:contentDescription="Add new course" />
+
 </LinearLayout>

@@ -1,0 +1,83 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- ImageView for displaying the current or new image -->
+        <ImageView
+            android:id="@+id/ivEditImage"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_marginBottom="8dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_placeholder" />
+
+        <!-- Button to change the image -->
+        <Button
+            android:id="@+id/btnChangeImage"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Change Image" />
+
+        <!-- EditText for editing Day of Week -->
+        <EditText
+            android:id="@+id/etDayOfWeek"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Day of Week"
+            android:layout_marginTop="16dp" />
+
+        <!-- EditText for editing Time of Course -->
+        <EditText
+            android:id="@+id/etTimeOfCourse"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Time of Course"
+            android:inputType="text" />
+
+        <!-- EditText for editing Capacity -->
+        <EditText
+            android:id="@+id/etCapacity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Capacity"
+            android:inputType="number" />
+
+        <!-- EditText for editing Duration -->
+        <EditText
+            android:id="@+id/etDuration"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Duration (minutes)"
+            android:inputType="number" />
+
+        <!-- EditText for editing Price -->
+        <EditText
+            android:id="@+id/etPrice"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Price (£)"
+            android:inputType="numberDecimal" />
+
+        <!-- EditText for editing Type of Class -->
+        <EditText
+            android:id="@+id/etTypeOfClass"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Type of Class" />
+
+        <!-- EditText for editing Description -->
+        <EditText
+            android:id="@+id/etDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Description"
+            android:inputType="textMultiLine"
+            android:minHeight="100dp" />
+    </LinearLayout>
+</ScrollView>
