@@ -3,6 +3,9 @@
     <style name="Base.Theme.Coursework" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="android:statusBarColor">@color/blue</item>
+        <item name="android:windowLightStatusBar">true</item> <!-- Giúp hiển thị icon status bar màu tối -->
+
     </style>
 
     <style name="Theme.Coursework" parent="Base.Theme.Coursework" />

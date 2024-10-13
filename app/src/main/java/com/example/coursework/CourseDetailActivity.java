@@ -11,6 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,7 +30,7 @@ public class CourseDetailActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
-    private TextView tvCourseTitle, tvCourseDescription, tvCourseDay, tvCourseTime, tvCourseCapacity, tvCourseDuration, tvCoursePrice;
+    private TextView tvCourseType, tvCourseDescription, tvCourseDay, tvCourseTime, tvCourseCapacity, tvCourseDuration, tvCoursePrice;
     private ImageView ivCourseImage;
     private Button btnEditCourse, btnBack, btnDeleteCourse;
     private YogaCourseDAO dao;
@@ -44,7 +45,7 @@ public class CourseDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_course_detail);
 
         // Initialize UI components
-        tvCourseTitle = findViewById(R.id.tvCourseTitle);
+        tvCourseType = findViewById(R.id.tvCourseType);
         tvCourseDescription = findViewById(R.id.tvCourseDescription);
         tvCourseDay = findViewById(R.id.tvCourseDay);
         tvCourseTime = findViewById(R.id.tvCourseTime);
@@ -53,8 +54,8 @@ public class CourseDetailActivity extends AppCompatActivity {
         tvCoursePrice = findViewById(R.id.tvCoursePrice);
         ivCourseImage = findViewById(R.id.ivCourseImage);
         btnEditCourse = findViewById(R.id.btnEditCourse);
-        btnBack = findViewById(R.id.btnBack);
         btnDeleteCourse = findViewById(R.id.btnDeleteCourse);
+        ImageButton btnBack = findViewById(R.id.btnBack);
 
         dao = new YogaCourseDAO(this);
 
@@ -71,7 +72,13 @@ public class CourseDetailActivity extends AppCompatActivity {
         btnEditCourse.setOnClickListener(v -> showEditPopup());
 
         // Back button action
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Đóng activity hiện tại và quay lại màn hình trước
+                finish();
+            }
+        });
 
         // Delete button action
         btnDeleteCourse.setOnClickListener(v -> {
@@ -92,11 +99,11 @@ public class CourseDetailActivity extends AppCompatActivity {
         YogaCourse yogaCourse = dao.getYogaCourseById(courseId);
 
         if (yogaCourse != null) {
-            tvCourseTitle.setText(yogaCourse.getType());
+            tvCourseType.setText(yogaCourse.getType());
             tvCourseDescription.setText(yogaCourse.getDescription());
             tvCourseDay.setText(yogaCourse.getDayOfWeek());
             tvCourseTime.setText(yogaCourse.getTime());
-            tvCourseCapacity.setText(String.valueOf(yogaCourse.getCapacity()));
+            tvCourseCapacity.setText(String.valueOf(yogaCourse.getCapacity())+ " people");
             tvCourseDuration.setText(String.valueOf(yogaCourse.getDuration()) + " minutes");
             tvCoursePrice.setText("£" + yogaCourse.getPrice());
 
@@ -112,11 +119,11 @@ public class CourseDetailActivity extends AppCompatActivity {
             ImageRequest request = new ImageRequest.Builder(this)
                     .data(file)
                     .target(imageView)
-                    .placeholder(R.drawable.ic_placeholder)
+                    .placeholder(R.drawable.image)
                     .build();
             imageLoader.enqueue(request);
         } else {
-            imageView.setImageResource(R.drawable.ic_placeholder);
+            imageView.setImageResource(R.drawable.image);
         }
     }
 

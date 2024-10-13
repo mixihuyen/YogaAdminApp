@@ -5,10 +5,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputType;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -35,23 +38,39 @@ public class AddCourseActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_course);
 
+        ImageButton btnBack = findViewById(R.id.btnBack);
+
         // Khởi tạo các thành phần giao diện
         etDayOfWeek = findViewById(R.id.etDayOfWeek);
         etTimeOfCourse = findViewById(R.id.etTimeOfCourse);
         etCapacity = findViewById(R.id.etCapacity);
         etDuration = findViewById(R.id.etDuration);
         etPrice = findViewById(R.id.etPrice);
-        etTypeOfClass = findViewById(R.id.etTypeOfClass);
+        etTypeOfClass = findViewById(R.id.etTypeOfCourse);
         etDescription = findViewById(R.id.etDescription);
         btnSubmit = findViewById(R.id.btnSubmit);
         btnSelectImage = findViewById(R.id.btnSelectImage);
         ivSelectedImage = findViewById(R.id.ivSelectedImage);
+
+        // Chỉ cho phép nhập số cho Capacity, Duration và Price
+        etTimeOfCourse.setInputType(InputType.TYPE_CLASS_NUMBER);
+        etCapacity.setInputType(InputType.TYPE_CLASS_NUMBER);
+        etDuration.setInputType(InputType.TYPE_CLASS_NUMBER);
+        etPrice.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
         // Khởi tạo DAO để lưu vào local database
         dao = new YogaCourseDAO(this);
 
         // Xử lý nút chọn ảnh
         btnSelectImage.setOnClickListener(v -> openFileChooser());
+
+        btnBack.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Đóng activity hiện tại và quay lại màn hình trước
+                finish();
+            }
+        });
 
         // Xử lý nút lưu thông tin khóa học
         btnSubmit.setOnClickListener(v -> {

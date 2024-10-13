@@ -1,75 +1,222 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="@color/white">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:gravity="start"
+        android:background="@color/white">
 
-        <EditText
-            android:id="@+id/etDayOfWeek"
+        <!-- Dòng chứa nút back và tiêu đề -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Day of the week (e.g. Monday)" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="16dp">
 
-        <EditText
-            android:id="@+id/etTimeOfCourse"
-            android:layout_width="match_parent"
+            <!-- Nút back -->
+            <ImageButton
+                android:id="@+id/btnBack"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_back_arrow"
+                android:contentDescription="Back"
+                android:padding="8dp" />
+
+            <!-- Tiêu đề -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Add new course"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:layout_marginStart="16dp" />
+        </LinearLayout>
+        <!-- Image Section -->
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:hint="Time of course (e.g. 10:00)" />
+            android:text="Course Image"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
 
-        <EditText
-            android:id="@+id/etCapacity"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Capacity" />
-
-        <EditText
-            android:id="@+id/etDuration"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Duration (e.g. 60 minutes)" />
-
-        <EditText
-            android:id="@+id/etPrice"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Price per class (e.g. £10)" />
-
-        <EditText
-            android:id="@+id/etTypeOfClass"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Type of class (e.g. Flow Yoga, Aerial Yoga)" />
-
-        <EditText
-            android:id="@+id/etDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Description (optional)" />
-
+        <!-- ImageView to display selected image -->
         <ImageView
             android:id="@+id/ivSelectedImage"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_marginTop="16dp"
+            android:layout_height="180dp"
+            android:layout_marginBottom="8dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_placeholder" />
+            android:background="@drawable/image_border"
+            android:src="@drawable/image" />
 
+        <!-- Button to select image with outline style -->
         <Button
             android:id="@+id/btnSelectImage"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Select Image" />
+            android:text="Select Image"
+            android:backgroundTint="@color/blue"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"
+            android:layout_marginTop="8dp" />
 
-        <Button
-            android:id="@+id/btnSubmit"
+
+        <!-- Day of the week -->
+        <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Submit" />
+            android:text="Day of the week *"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
 
+        <EditText
+            android:id="@+id/etDayOfWeek"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="Monday, Tuesday, etc ..."
+            android:background="@drawable/edit_text_background"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Time of course -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Time of course *"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etTimeOfCourse"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="10:00 - 11:00"
+            android:background="@drawable/edit_text_background"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Capacity -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Capacity *"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etCapacity"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="10 persons"
+            android:background="@drawable/edit_text_background"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Duration -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Duration *"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etDuration"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="60 minutes"
+            android:background="@drawable/edit_text_background"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Price -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Price per class *"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etPrice"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="10$"
+            android:background="@drawable/edit_text_background"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp" />
+
+        <!-- Type of class -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Type of Course *"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+        <EditText
+            android:id="@+id/etTypeOfCourse"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:hint="Type of course (Flow, Aerial, etc)"
+            android:background="@drawable/edit_text_background"
+            android:padding="10dp"
+            android:textSize="14sp"
+            android:layout_marginBottom="12dp" />
+
+
+
+        <!-- Description -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Description"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:layout_marginBottom="8dp" />
+
+        <EditText
+            android:id="@+id/etDescription"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:hint="Opt."
+            android:background="@drawable/edit_text_background"
+            android:padding="12dp"
+            android:textSize="14sp"
+            android:layout_marginTop="0dp" />
+
+        <!-- Button Add -->
+        <Button
+            android:id="@+id/btnSubmit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="ADD"
+            android:backgroundTint="@color/blue"
+            android:textColor="@color/white"
+            android:textStyle="bold"
+            android:padding="16dp"
+            android:layout_marginTop="8dp" />
 
     </LinearLayout>
 </ScrollView>

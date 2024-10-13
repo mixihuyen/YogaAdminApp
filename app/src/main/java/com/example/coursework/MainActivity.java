@@ -15,10 +15,13 @@ import android.widget.Toast;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import coil.Coil;
@@ -27,23 +30,29 @@ import coil.request.ImageRequest;
 
 public class MainActivity extends AppCompatActivity {
 
-    private GridLayout gridLayoutCourses;
+    private RecyclerView recyclerViewCourses;
     private EditText searchBar;
     private FloatingActionButton fabAddCourse;
     private YogaCourseDAO dao;
     private List<YogaCourse> yogaCourses;
+    private CourseAdapter courseAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        gridLayoutCourses = findViewById(R.id.gridLayoutCourses);
+        recyclerViewCourses = findViewById(R.id.recyclerViewCourses);
         searchBar = findViewById(R.id.searchBar);
         fabAddCourse = findViewById(R.id.fabAddCourse);
 
         dao = new YogaCourseDAO(this);
         yogaCourses = dao.getAllYogaCourses();
+        // Thiết lập GridLayoutManager với 2 cột
+        recyclerViewCourses.setLayoutManager(new GridLayoutManager(this, 2));
+
+        courseAdapter = new CourseAdapter(yogaCourses);
+        recyclerViewCourses.setAdapter(courseAdapter);
 
         loadCourses("");
 
@@ -67,79 +76,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadCourses(String filter) {
-        gridLayoutCourses.removeAllViews();
 
         if (yogaCourses == null || yogaCourses.isEmpty()) {
             Toast.makeText(this, "Không có khóa học nào", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        for (YogaCourse yogaCourse : yogaCourses) {
-            if (!yogaCourse.getType().toLowerCase().contains(filter.toLowerCase())) {
-                continue;
-            }
-
-            LinearLayout courseLayout = new LinearLayout(this);
-            courseLayout.setOrientation(LinearLayout.VERTICAL);
-            courseLayout.setPadding(16, 16, 16, 16);
-            courseLayout.setGravity(Gravity.CENTER);
-
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.width = 0;
-            params.height = ViewGroup.LayoutParams.WRAP_CONTENT;
-            params.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
-            params.setMargins(16, 16, 16, 16);
-            courseLayout.setLayoutParams(params);
-
-            ImageView imageView = new ImageView(this);
-            LinearLayout.LayoutParams imageParams = new LinearLayout.LayoutParams(500, 500);
-            imageParams.gravity = Gravity.CENTER;
-            imageView.setLayoutParams(imageParams);
-
-            if (yogaCourse.getImageUrl() != null && !yogaCourse.getImageUrl().isEmpty()) {
-                loadImageWithCoil(imageView, yogaCourse.getImageUrl());
-            } else {
-                imageView.setImageResource(R.drawable.ic_placeholder);
-            }
-
-            TextView titleView = new TextView(this);
-            titleView.setText(yogaCourse.getType());
-            titleView.setGravity(Gravity.CENTER);
-            titleView.setTextSize(18);
-            titleView.setTypeface(titleView.getTypeface(), android.graphics.Typeface.BOLD); // Đặt kiểu chữ in đậm
-            LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.WRAP_CONTENT
-            );
-            titleParams.gravity = Gravity.CENTER;
-            titleView.setLayoutParams(titleParams);
-
-            courseLayout.addView(imageView);
-            courseLayout.addView(titleView);
-
-            // Set OnClickListener để chuyển đến CourseDetailActivity
-            courseLayout.setOnClickListener(v -> openCourseDetail(yogaCourse));
-
-            gridLayoutCourses.addView(courseLayout);
+        List<YogaCourse> filteredCourses = filterCourses(filter);
+        courseAdapter.updateCourses(filteredCourses);
+    }
+    private List<YogaCourse> filterCourses(String filter) {
+        // Lọc các khóa học theo từ khóa tìm kiếm
+        if (filter.isEmpty()) {
+            return yogaCourses;
         }
+
+        List<YogaCourse> filteredList = new ArrayList<>();
+        for (YogaCourse course : yogaCourses) {
+            if (course.getType().toLowerCase().contains(filter.toLowerCase())) {
+                filteredList.add(course);
+            }
+        }
+        return filteredList;
     }
 
-    private void loadImageWithCoil(ImageView imageView, String imagePath) {
-        File file = new File(imagePath);
-        ImageLoader imageLoader = Coil.imageLoader(this);
-        ImageRequest request = new ImageRequest.Builder(this)
-                .data(file)
-                .target(imageView)
-                .placeholder(R.drawable.ic_placeholder)
-                .build();
-        imageLoader.enqueue(request);
-    }
 
-    private void openCourseDetail(YogaCourse yogaCourse) {
-        Intent intent = new Intent(this, CourseDetailActivity.class);
-        intent.putExtra("COURSE_ID", yogaCourse.getId());
-        startActivity(intent);
-    }
 
     @Override
     protected void onResume() {

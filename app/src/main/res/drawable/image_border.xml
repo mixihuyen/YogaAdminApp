@@ -1,0 +1,11 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent" />
+
+    <!-- Đặt màu của đường viền -->
+    <stroke
+        android:width="2dp"
+        android:color="@android:color/darker_gray" />
+
+    <!-- Đặt góc bo tròn (tuỳ chọn) -->
+    <corners android:radius="8dp" />
+</shape>

@@ -26,7 +26,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".AddCourseActivity"/>
-        <activity android:name=".ListCourseActivity"/>
         <activity android:name=".CourseDetailActivity" />
         <meta-data
             android:name="com.google.android.gms.version"
