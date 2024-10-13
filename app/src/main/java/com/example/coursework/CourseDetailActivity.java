@@ -4,6 +4,7 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -17,6 +18,11 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
+
 import coil.Coil;
 import coil.ImageLoader;
 import coil.request.ImageRequest;
@@ -32,12 +38,13 @@ public class CourseDetailActivity extends AppCompatActivity {
 
     private TextView tvCourseType, tvCourseDescription, tvCourseDay, tvCourseTime, tvCourseCapacity, tvCourseDuration, tvCoursePrice;
     private ImageView ivCourseImage;
-    private Button btnEditCourse, btnBack, btnDeleteCourse;
+    private Button btnEditCourse, btnPushCourse, btnDeleteCourse, btnSyncCourse;
     private YogaCourseDAO dao;
     private int courseId;
     private String currentImagePath;
     private ImageView ivEditImage;
     private Uri newImageUri;
+    private YogaCourse yogaCourse; // Biến yogaCourse để lưu trữ khóa học hiện tại
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -55,6 +62,7 @@ public class CourseDetailActivity extends AppCompatActivity {
         ivCourseImage = findViewById(R.id.ivCourseImage);
         btnEditCourse = findViewById(R.id.btnEditCourse);
         btnDeleteCourse = findViewById(R.id.btnDeleteCourse);
+        btnPushCourse = findViewById(R.id.btnPushCourse);
         ImageButton btnBack = findViewById(R.id.btnBack);
 
         dao = new YogaCourseDAO(this);
@@ -64,21 +72,18 @@ public class CourseDetailActivity extends AppCompatActivity {
         if (intent != null) {
             courseId = intent.getIntExtra("COURSE_ID", -1);
             if (courseId != -1) {
-                displayCourseDetails(courseId);
+                yogaCourse = dao.getYogaCourseById(courseId); // Lưu khóa học vào biến yogaCourse
+                displayCourseDetails(yogaCourse); // Hiển thị chi tiết khóa học
             }
         }
+
+        btnPushCourse.setOnClickListener(v -> pushCourseToFirestore(yogaCourse));
 
         // Set click listener for editing the course
         btnEditCourse.setOnClickListener(v -> showEditPopup());
 
         // Back button action
-        btnBack.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Đóng activity hiện tại và quay lại màn hình trước
-                finish();
-            }
-        });
+        btnBack.setOnClickListener(v -> finish());
 
         // Delete button action
         btnDeleteCourse.setOnClickListener(v -> {
@@ -86,18 +91,31 @@ public class CourseDetailActivity extends AppCompatActivity {
                     .setTitle("Delete Course")
                     .setMessage("Are you sure you want to delete this course?")
                     .setPositiveButton("Yes", (dialog, which) -> {
-                        dao.deleteYogaCourse(courseId);
-                        Toast.makeText(CourseDetailActivity.this, "Course deleted successfully!", Toast.LENGTH_SHORT).show();
-                        finish();
+                        // Xóa khóa học khỏi Firestore
+                        FirebaseFirestore db = FirebaseFirestore.getInstance();
+                        db.collection("courses")
+                                .document(String.valueOf(courseId))
+                                .delete()
+                                .addOnSuccessListener(aVoid -> {
+                                    // Xóa thành công khỏi Firestore, tiếp tục xóa khỏi SQLite
+                                    dao.deleteYogaCourse(courseId);
+
+                                    // Sau khi xóa, kết thúc Activity và quay lại MainActivity
+                                    Intent resultIntent = new Intent();
+                                    setResult(RESULT_OK, resultIntent);
+                                    Toast.makeText(CourseDetailActivity.this, "Course deleted successfully!", Toast.LENGTH_SHORT).show();
+                                    finish(); // Đóng Activity và quay lại MainActivity
+                                })
+                                .addOnFailureListener(e -> Toast.makeText(CourseDetailActivity.this, "Failed to delete from Firestore!", Toast.LENGTH_SHORT).show());
                     })
                     .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                     .show();
         });
+
+
     }
 
-    private void displayCourseDetails(int courseId) {
-        YogaCourse yogaCourse = dao.getYogaCourseById(courseId);
-
+    private void displayCourseDetails(YogaCourse yogaCourse) {
         if (yogaCourse != null) {
             tvCourseType.setText(yogaCourse.getType());
             tvCourseDescription.setText(yogaCourse.getDescription());
@@ -106,6 +124,15 @@ public class CourseDetailActivity extends AppCompatActivity {
             tvCourseCapacity.setText(String.valueOf(yogaCourse.getCapacity())+ " people");
             tvCourseDuration.setText(String.valueOf(yogaCourse.getDuration()) + " minutes");
             tvCoursePrice.setText("£" + yogaCourse.getPrice());
+
+            TextView syncStatus = findViewById(R.id.tvSyncStatus);
+            if (yogaCourse.isSynced()) {
+                syncStatus.setText("Synchronized");
+                syncStatus.setTextColor(Color.GREEN);
+            } else {
+                syncStatus.setText("Not synchronized");
+                syncStatus.setTextColor(Color.RED);
+            }
 
             currentImagePath = yogaCourse.getImageUrl();
             loadImage(currentImagePath, ivCourseImage);
@@ -143,7 +170,6 @@ public class CourseDetailActivity extends AppCompatActivity {
         ivEditImage = dialogView.findViewById(R.id.ivEditImage);
         Button btnChangeImage = dialogView.findViewById(R.id.btnChangeImage);
 
-        YogaCourse yogaCourse = dao.getYogaCourseById(courseId);
         if (yogaCourse != null) {
             etDayOfWeek.setText(yogaCourse.getDayOfWeek());
             etTimeOfCourse.setText(yogaCourse.getTime());
@@ -167,23 +193,38 @@ public class CourseDetailActivity extends AppCompatActivity {
             String type = etTypeOfClass.getText().toString();
             String description = etDescription.getText().toString();
 
-            // If a new image is selected, save it
+            // Nếu có ảnh mới được chọn, lưu nó
             if (newImageUri != null) {
                 currentImagePath = saveImage(newImageUri);
             }
 
-            YogaCourse updatedCourse = new YogaCourse(courseId, dayOfWeek, time, capacity, duration, price, type, description, currentImagePath);
-            dao.updateYogaCourse(updatedCourse);
+            // Khi cập nhật, chuyển trạng thái isSynced thành false và cập nhật biến yogaCourse
+            yogaCourse.setDayOfWeek(dayOfWeek);
+            yogaCourse.setTime(time);
+            yogaCourse.setCapacity(capacity);
+            yogaCourse.setDuration(duration);
+            yogaCourse.setPrice(price);
+            yogaCourse.setType(type);
+            yogaCourse.setDescription(description);
+            yogaCourse.setImageUrl(currentImagePath);
+            yogaCourse.setSynced(false); // Đặt trạng thái chưa đồng bộ
 
-            Toast.makeText(CourseDetailActivity.this, "Course updated successfully!", Toast.LENGTH_SHORT).show();
-            displayCourseDetails(courseId);
+            // Cập nhật vào database
+            dao.updateYogaCourse(yogaCourse);
+
+            // Cập nhật lại giao diện ngay sau khi lưu thay đổi
+            displayCourseDetails(yogaCourse);
+
+            Toast.makeText(CourseDetailActivity.this, "Course updated successfully! Status set to Not Synced.", Toast.LENGTH_SHORT).show();
         });
+
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
+
 
     private void openFileChooser() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -225,6 +266,28 @@ public class CourseDetailActivity extends AppCompatActivity {
             return null;
         }
     }
+
+    private void pushCourseToFirestore(YogaCourse course) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance(); // Khởi tạo Firestore
+
+        // Đẩy khóa học lên Firestore
+        db.collection("courses") // Chọn collection "courses"
+                .document(String.valueOf(course.getId())) // Đặt document theo id của khóa học
+                .set(course) // Đẩy toàn bộ thông tin khóa học lên Firestore
+                .addOnSuccessListener(aVoid -> {
+                    // Hiển thị thông báo đẩy thành công
+                    Toast.makeText(CourseDetailActivity.this, "Course pushed to Firestore successfully!", Toast.LENGTH_SHORT).show();
+                    // Đánh dấu trạng thái đã đẩy lên Firestore
+                    course.setSynced(true); // Đặt trạng thái đã đẩy thông tin
+                    dao.updateYogaCourse(course); // Cập nhật trạng thái isSynced trong SQLite
+                    displayCourseDetails(course); // Cập nhật hiển thị chi tiết khóa học
+                })
+                .addOnFailureListener(e -> {
+                    // Nếu đẩy lên Firestore thất bại
+                    Toast.makeText(CourseDetailActivity.this, "Failed to push course to Firestore!", Toast.LENGTH_SHORT).show();
+                });
+    }
+
 
     @Override
     protected void onDestroy() {

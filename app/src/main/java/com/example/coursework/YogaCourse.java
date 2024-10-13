@@ -10,8 +10,9 @@ public class YogaCourse {
     private String type;
     private String description;
     private String imageUrl; // Thêm trường ảnh
+    private boolean isSynced;
 
-    public YogaCourse(int id, String dayOfWeek, String time, int capacity, int duration, double price, String type, String description, String imageUrl) {
+    public YogaCourse(int id, String dayOfWeek, String time, int capacity, int duration, double price, String type, String description, String imageUrl, boolean isSynced) {
         this.id = id;
         this.dayOfWeek = dayOfWeek;
         this.time = time;
@@ -21,6 +22,7 @@ public class YogaCourse {
         this.type = type;
         this.description = description;
         this.imageUrl = imageUrl;
+        this.isSynced = isSynced;
     }
 
     // Getter và Setter cho tất cả các thuộc tính, bao gồm imageUrl
@@ -95,5 +97,14 @@ public class YogaCourse {
     @Override
     public String toString() {
         return type + " on " + dayOfWeek + " at " + time;
+    }
+
+    // Constructor, getters, setters
+    public boolean isSynced() {
+        return isSynced;
+    }
+
+    public void setSynced(boolean synced) {
+        isSynced = synced;
     }
 }

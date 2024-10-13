@@ -36,6 +36,41 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+
+            <!-- Status text -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+
+                android:text="Status:  "
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/tvSyncStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Not Synchronized"
+                android:textSize="16sp" />
+
+            <!-- Push button with border -->
+            <Button
+                android:id="@+id/btnPushCourse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:backgroundTint="@color/blue"
+                android:text="Push"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
+
         <ImageView
             android:id="@+id/ivCourseImage"
             android:layout_width="match_parent"
@@ -83,6 +118,7 @@
                 android:textSize="16sp" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -105,6 +141,7 @@
                 android:textSize="16sp" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -127,6 +164,7 @@
                 android:textSize="16sp" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -149,6 +187,7 @@
                 android:textSize="16sp" />
 
         </LinearLayout>
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -171,22 +210,33 @@
                 android:textSize="16sp" />
 
         </LinearLayout>
-        <Button
-            android:id="@+id/btnEditCourse"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Edit Course" />
 
-        <!-- Delete Button -->
-        <Button
-            android:id="@+id/btnDeleteCourse"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:backgroundTint="@android:color/holo_red_light"
-            android:text="Delete Course"
-            android:textColor="@android:color/white" />
+            android:layout_marginBottom="0dp"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <!-- Edit Course Button -->
+            <Button
+                android:id="@+id/btnEditCourse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:backgroundTint="@color/blue"
+                android:text="Edit Course" />
+
+            <!-- Delete Course Button -->
+            <Button
+                android:id="@+id/btnDeleteCourse"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@android:color/holo_red_light"
+                android:text="Delete Course"
+                android:textColor="@android:color/white" />
+        </LinearLayout>
 
     </LinearLayout>
 </ScrollView>

@@ -66,10 +66,11 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseView
         return courseList.size();
     }
 
-    public void updateCourses(List<YogaCourse> newCourseList) {
-        this.courseList = newCourseList;
+    public void updateCourses(List<YogaCourse> updatedCourses) {
+        this.courseList = updatedCourses;
         notifyDataSetChanged();
     }
+
 
     static class CourseViewHolder extends RecyclerView.ViewHolder {
 

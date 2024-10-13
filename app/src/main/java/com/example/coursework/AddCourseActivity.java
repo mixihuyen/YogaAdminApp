@@ -53,7 +53,6 @@ public class AddCourseActivity extends AppCompatActivity {
         ivSelectedImage = findViewById(R.id.ivSelectedImage);
 
         // Chỉ cho phép nhập số cho Capacity, Duration và Price
-        etTimeOfCourse.setInputType(InputType.TYPE_CLASS_NUMBER);
         etCapacity.setInputType(InputType.TYPE_CLASS_NUMBER);
         etDuration.setInputType(InputType.TYPE_CLASS_NUMBER);
         etPrice.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);

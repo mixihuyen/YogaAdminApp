@@ -4,29 +4,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.Gravity;
-import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.GridLayout;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.TextView;
 import android.widget.Toast;
-import android.view.View;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import coil.Coil;
-import coil.ImageLoader;
-import coil.request.ImageRequest;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -36,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private YogaCourseDAO dao;
     private List<YogaCourse> yogaCourses;
     private CourseAdapter courseAdapter;
+    private static final int COURSE_DETAIL_REQUEST_CODE = 1001; // Định nghĩa COURSE_DETAIL_REQUEST_CODE
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
         dao = new YogaCourseDAO(this);
         yogaCourses = dao.getAllYogaCourses();
+
         // Thiết lập GridLayoutManager với 2 cột
         recyclerViewCourses.setLayoutManager(new GridLayoutManager(this, 2));
 
@@ -71,21 +62,21 @@ public class MainActivity extends AppCompatActivity {
 
         fabAddCourse.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddCourseActivity.class);
-            startActivity(intent);
+            startActivityForResult(intent, COURSE_DETAIL_REQUEST_CODE); // Dùng startActivityForResult để nhận kết quả từ AddCourseActivity
         });
     }
 
     private void loadCourses(String filter) {
-
         if (yogaCourses == null || yogaCourses.isEmpty()) {
-            Toast.makeText(this, "Không có khóa học nào", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "No courses available", Toast.LENGTH_SHORT).show();
             return;
         }
+
         List<YogaCourse> filteredCourses = filterCourses(filter);
         courseAdapter.updateCourses(filteredCourses);
     }
+
     private List<YogaCourse> filterCourses(String filter) {
-        // Lọc các khóa học theo từ khóa tìm kiếm
         if (filter.isEmpty()) {
             return yogaCourses;
         }
@@ -99,12 +90,12 @@ public class MainActivity extends AppCompatActivity {
         return filteredList;
     }
 
-
-
     @Override
     protected void onResume() {
         super.onResume();
         yogaCourses = dao.getAllYogaCourses();
+        courseAdapter.updateCourses(yogaCourses); // Cập nhật adapter
+        courseAdapter.notifyDataSetChanged(); // Thông báo cho RecyclerView cập nhật giao diện
         loadCourses("");
     }
 
@@ -112,5 +103,18 @@ public class MainActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         dao.close();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == COURSE_DETAIL_REQUEST_CODE && resultCode == RESULT_OK) {
+            yogaCourses = dao.getAllYogaCourses();
+            courseAdapter.updateCourses(yogaCourses);
+            courseAdapter.notifyDataSetChanged();
+            // Làm mới danh sách khóa học từ SQLite
+            loadCourses("");
+        }
     }
 }
