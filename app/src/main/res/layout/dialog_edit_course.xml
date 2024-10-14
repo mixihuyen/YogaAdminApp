@@ -58,7 +58,7 @@
             android:textColor="@color/black"
             android:textSize="14sp" />
 
-        <EditText
+        <TextView
             android:id="@+id/etDayOfWeek"
             android:layout_width="match_parent"
             android:layout_height="40dp"
@@ -77,13 +77,13 @@
             android:textColor="@color/black"
             android:textSize="14sp" />
 
-        <EditText
+        <TextView
             android:id="@+id/etTimeOfCourse"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginBottom="12dp"
             android:background="@drawable/edit_text_background"
-            android:hint="10:00 - 11:00"
+            android:hint="10:00"
             android:padding="10dp"
             android:textSize="14sp" />
 

@@ -1,0 +1,53 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:background="@drawable/image_border"
+    android:orientation="horizontal"
+    android:padding="16dp"> <!-- Apply the border here -->
+
+    <!-- Name TextView chiếm 1 phần không gian -->
+    <TextView
+        android:id="@+id/tvName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Name"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <!-- ImageButton ở giữa, không chiếm không gian quá nhiều -->
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_calender" />
+
+    <!-- Date TextView chiếm 1 phần không gian -->
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
+        android:layout_weight="1"
+        android:text="Date" />
+
+    <!-- Teacher TextView chiếm 1 phần không gian -->
+    <TextView
+        android:id="@+id/tvTeacher"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
+        android:layout_weight="1"
+        android:text="Teacher" />
+
+    <!-- Nút X cho việc xóa -->
+    <ImageButton
+        android:id="@+id/btnDelete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Delete"
+        android:src="@drawable/ic_delete" />
+</LinearLayout>

@@ -1,242 +1,337 @@
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp">
+    tools:context=".MainActivity">
 
-    <LinearLayout
+    <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:layout_marginBottom="0dp"
+        android:padding="16dp">
+
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
-            <!-- Nút back -->
-            <ImageButton
-                android:id="@+id/btnBack"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="Back"
-                android:padding="8dp"
-                android:src="@drawable/ic_back_arrow" />
+                android:layout_marginBottom="16dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
-            <!-- Tiêu đề -->
+                <!-- Nút back -->
+                <ImageButton
+                    android:id="@+id/btnBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="Back"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_back_arrow" />
+
+                <!-- Tiêu đề -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:text="Course Detail"
+                    android:textColor="@color/black"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+
+                <!-- Status text -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+
+                    android:text="Status:  "
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:id="@+id/tvSyncStatus"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Not Synchronized"
+                    android:textSize="16sp" />
+
+                <!-- Push button with border -->
+                <Button
+                    android:id="@+id/btnPush"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:backgroundTint="@color/blue"
+                    android:text="Push"
+                    android:textColor="@android:color/white" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/ivCourseImage"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/image" />
+
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/tvCourseType"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:text="Course Detail"
-                android:textColor="@color/black"
+                android:layout_marginTop="16dp"
+                android:text="Type"
                 android:textSize="24sp"
                 android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="8dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-
-            <!-- Status text -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-
-                android:text="Status:  "
-                android:textSize="16sp" />
 
             <TextView
-                android:id="@+id/tvSyncStatus"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Not Synchronized"
-                android:textSize="16sp" />
-
-            <!-- Push button with border -->
-            <Button
-                android:id="@+id/btnPushCourse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:backgroundTint="@color/blue"
-                android:text="Push"
-                android:textColor="@android:color/white" />
-        </LinearLayout>
-
-        <ImageView
-            android:id="@+id/ivCourseImage"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/image" />
-
-        <TextView
-            android:id="@+id/tvCourseType"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:text="Type"
-            android:textSize="24sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/tvCourseDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Course Description"
-            android:textSize="16sp" />
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="0dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="0dp"
-                android:text="Day of Week:  "
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/tvCourseDay"
+                android:id="@+id/tvCourseDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="0dp"
-                android:text="Day of Week"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:text="Course Description"
                 android:textSize="16sp" />
 
-        </LinearLayout>
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="0dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+                <!-- ImageView hiển thị hình ảnh nền -->
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/frame" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="0dp"
-                android:text="Time:  "
-                android:textSize="16sp" />
+                <!-- TextView hiển thị nội dung chồng lên ảnh -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:padding="8dp"
+                    android:gravity="center_vertical"
+                    android:layout_gravity="center"
+                    android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="0dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/tvCourseTime"
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginTop="0dp"
+                        android:text="Day of Week:  "
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tvCourseDay"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginTop="0dp"
+                        android:text="Day of Week"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="0dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginTop="0dp"
+                        android:text="Time:  "
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tvCourseTime"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:text="Time"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="0dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginTop="0dp"
+                        android:text="Capacity:  "
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tvCourseCapacity"
+                        android:textColor="#FFFFFF"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Capacity"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="0dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginTop="0dp"
+                        android:text="Duration:  "
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tvCourseDuration"
+                        android:textColor="#FFFFFF"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Duration"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="0dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginTop="0dp"
+                        android:text="Price:  "
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/tvCoursePrice"
+                        android:textColor="#FFFFFF"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Price"
+                        android:textSize="16sp" />
+
+                </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+
+
+
+
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Time"
-                android:textSize="16sp" />
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="30dp"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
 
-        </LinearLayout>
+                <!-- Edit Course Button -->
+                <Button
+                    android:id="@+id/btnEditCourse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:backgroundTint="@color/blue"
+                    android:text="Edit Course" />
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="0dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
+                <!-- Delete Course Button -->
+                <Button
+                    android:id="@+id/btnDeleteCourse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@android:color/holo_red_light"
+                    android:text="Delete Course"
+                    android:textColor="@android:color/white" />
+            </LinearLayout>
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="0dp"
-                android:text="Capacity:  "
-                android:textSize="16sp" />
+                android:text="Class Instances available"
+                android:textStyle="bold"
+                android:textSize="18sp" />
 
-            <TextView
-                android:id="@+id/tvCourseCapacity"
+
+            <EditText
+                android:id="@+id/searchBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Capacity"
-                android:textSize="16sp" />
+                android:layout_marginTop="16dp"
+                android:drawableEnd="@drawable/ic_search"
+                android:hint="Search..."
+                android:padding="8dp" />
 
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="0dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="0dp"
-                android:text="Duration:  "
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/tvCourseDuration"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewClass"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Duration"
-                android:textSize="16sp" />
+                android:layout_height="384dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="380dp"
+                android:layout_weight="1" />
+
 
         </LinearLayout>
+    </ScrollView>
 
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="0dp"
-            android:gravity="center_vertical"
-            android:orientation="horizontal">
+    <View
+        android:id="@+id/bottom_navigation_bar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_gravity="bottom"
+        android:background="@color/blue" />
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="0dp"
-                android:text="Price:  "
-                android:textSize="16sp" />
-
-            <TextView
-                android:id="@+id/tvCoursePrice"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Price"
-                android:textSize="16sp" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="0dp"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
-
-            <!-- Edit Course Button -->
-            <Button
-                android:id="@+id/btnEditCourse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:backgroundTint="@color/blue"
-                android:text="Edit Course" />
-
-            <!-- Delete Course Button -->
-            <Button
-                android:id="@+id/btnDeleteCourse"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:backgroundTint="@android:color/holo_red_light"
-                android:text="Delete Course"
-                android:textColor="@android:color/white" />
-        </LinearLayout>
-
-    </LinearLayout>
-</ScrollView>
+    <!-- Nút thêm khóa học (Floating Action Button) đè lên khung dưới cùng -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnAddClassInstance"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:layout_marginBottom="1dp"
+        android:backgroundTint="@color/white"
+        android:contentDescription="Add new class"
+        android:src="@drawable/ic_add"
+        app:borderWidth="0dp"
+        app:fabSize="mini"
+        app:maxImageSize="26dp"
+        app:tint="@color/blue" />
+</FrameLayout>

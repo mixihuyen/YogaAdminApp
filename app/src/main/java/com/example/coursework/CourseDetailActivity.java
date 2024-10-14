@@ -1,6 +1,8 @@
 package com.example.coursework;
 
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
+import android.app.TimePickerDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,20 +10,31 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ScrollView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import androidx.core.widget.NestedScrollView;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.WriteBatch;
 
 import coil.Coil;
 import coil.ImageLoader;
@@ -31,25 +44,40 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 public class CourseDetailActivity extends AppCompatActivity {
 
     private static final int PICK_IMAGE_REQUEST = 1;
+    private static final int ADD_CLASS_REQUEST_CODE = 1001;
+    private RecyclerView recyclerViewClass;
+    private ScrollView scrollView;
 
     private TextView tvCourseType, tvCourseDescription, tvCourseDay, tvCourseTime, tvCourseCapacity, tvCourseDuration, tvCoursePrice;
     private ImageView ivCourseImage;
-    private Button btnEditCourse, btnPushCourse, btnDeleteCourse, btnSyncCourse;
+    private Button btnEditCourse, btnPush, btnDeleteCourse;
     private YogaCourseDAO dao;
     private int courseId;
     private String currentImagePath;
     private ImageView ivEditImage;
     private Uri newImageUri;
-    private YogaCourse yogaCourse; // Biến yogaCourse để lưu trữ khóa học hiện tại
+    private YogaCourse yogaCourse;
+    private EditText searchBar;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_course_detail);
+
+        recyclerViewClass = findViewById(R.id.recyclerViewClass);
+        searchBar = findViewById(R.id.searchBar);
+        scrollView = findViewById(R.id.scrollView);
 
         // Initialize UI components
         tvCourseType = findViewById(R.id.tvCourseType);
@@ -62,56 +90,89 @@ public class CourseDetailActivity extends AppCompatActivity {
         ivCourseImage = findViewById(R.id.ivCourseImage);
         btnEditCourse = findViewById(R.id.btnEditCourse);
         btnDeleteCourse = findViewById(R.id.btnDeleteCourse);
-        btnPushCourse = findViewById(R.id.btnPushCourse);
+        btnPush = findViewById(R.id.btnPush);
         ImageButton btnBack = findViewById(R.id.btnBack);
+        FloatingActionButton btnAddClassInstance = findViewById(R.id.btnAddClassInstance);
+
 
         dao = new YogaCourseDAO(this);
+        recyclerViewClass.setLayoutManager(new LinearLayoutManager(this));
 
         // Retrieve the course ID passed from the MainActivity
         Intent intent = getIntent();
         if (intent != null) {
             courseId = intent.getIntExtra("COURSE_ID", -1);
             if (courseId != -1) {
-                yogaCourse = dao.getYogaCourseById(courseId); // Lưu khóa học vào biến yogaCourse
-                displayCourseDetails(yogaCourse); // Hiển thị chi tiết khóa học
+                yogaCourse = dao.getYogaCourseById(courseId);
+                displayCourseDetails(yogaCourse);
             }
         }
+        searchBar.setOnFocusChangeListener((v, hasFocus) -> {
+            if (hasFocus) {
+                scrollView.post(() -> scrollView.smoothScrollTo(0, searchBar.getTop()));
+            }
+        });
 
-        btnPushCourse.setOnClickListener(v -> pushCourseToFirestore(yogaCourse));
+        searchBar.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // Không cần làm gì ở đây
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Lọc danh sách khi văn bản thay đổi
+                filterClassInstances(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // Không cần làm gì ở đây
+            }
+        });
+
+
+        btnAddClassInstance.setOnClickListener(v -> {
+            if (courseId != -1) {
+                Intent intentToAddClassInstance = new Intent(CourseDetailActivity.this, AddClassInstanceActivity.class);
+                intentToAddClassInstance.putExtra("COURSE_ID", courseId);
+                startActivityForResult(intentToAddClassInstance, ADD_CLASS_REQUEST_CODE);
+            } else {
+                Toast.makeText(CourseDetailActivity.this, "Error: Course ID not found!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        btnPush.setOnClickListener(v -> {
+            List<ClassInstance> classInstanceList = dao.getClassInstancesByCourseId(courseId);
+            pushCourseAndClassInstancesToFirestore(yogaCourse, classInstanceList);
+        });
+
 
         // Set click listener for editing the course
         btnEditCourse.setOnClickListener(v -> showEditPopup());
 
-        // Back button action
         btnBack.setOnClickListener(v -> finish());
 
-        // Delete button action
         btnDeleteCourse.setOnClickListener(v -> {
             new AlertDialog.Builder(this)
                     .setTitle("Delete Course")
                     .setMessage("Are you sure you want to delete this course?")
                     .setPositiveButton("Yes", (dialog, which) -> {
-                        // Xóa khóa học khỏi Firestore
                         FirebaseFirestore db = FirebaseFirestore.getInstance();
                         db.collection("courses")
                                 .document(String.valueOf(courseId))
                                 .delete()
                                 .addOnSuccessListener(aVoid -> {
-                                    // Xóa thành công khỏi Firestore, tiếp tục xóa khỏi SQLite
                                     dao.deleteYogaCourse(courseId);
-
-                                    // Sau khi xóa, kết thúc Activity và quay lại MainActivity
-                                    Intent resultIntent = new Intent();
-                                    setResult(RESULT_OK, resultIntent);
+                                    setResult(RESULT_OK, new Intent());
                                     Toast.makeText(CourseDetailActivity.this, "Course deleted successfully!", Toast.LENGTH_SHORT).show();
-                                    finish(); // Đóng Activity và quay lại MainActivity
+                                    finish();
                                 })
                                 .addOnFailureListener(e -> Toast.makeText(CourseDetailActivity.this, "Failed to delete from Firestore!", Toast.LENGTH_SHORT).show());
                     })
                     .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                     .show();
         });
-
 
     }
 
@@ -121,21 +182,18 @@ public class CourseDetailActivity extends AppCompatActivity {
             tvCourseDescription.setText(yogaCourse.getDescription());
             tvCourseDay.setText(yogaCourse.getDayOfWeek());
             tvCourseTime.setText(yogaCourse.getTime());
-            tvCourseCapacity.setText(String.valueOf(yogaCourse.getCapacity())+ " people");
+            tvCourseCapacity.setText(String.valueOf(yogaCourse.getCapacity()) + " people");
             tvCourseDuration.setText(String.valueOf(yogaCourse.getDuration()) + " minutes");
             tvCoursePrice.setText("£" + yogaCourse.getPrice());
 
             TextView syncStatus = findViewById(R.id.tvSyncStatus);
-            if (yogaCourse.isSynced()) {
-                syncStatus.setText("Synchronized");
-                syncStatus.setTextColor(Color.GREEN);
-            } else {
-                syncStatus.setText("Not synchronized");
-                syncStatus.setTextColor(Color.RED);
-            }
+            syncStatus.setText(yogaCourse.isSynced() ? "Synchronized" : "Not synchronized");
+            syncStatus.setTextColor(yogaCourse.isSynced() ? Color.GREEN : Color.RED);
 
             currentImagePath = yogaCourse.getImageUrl();
             loadImage(currentImagePath, ivCourseImage);
+
+            loadClassInstances();
         }
     }
 
@@ -160,8 +218,8 @@ public class CourseDetailActivity extends AppCompatActivity {
         View dialogView = inflater.inflate(R.layout.dialog_edit_course, null);
         builder.setView(dialogView);
 
-        EditText etDayOfWeek = dialogView.findViewById(R.id.etDayOfWeek);
-        EditText etTimeOfCourse = dialogView.findViewById(R.id.etTimeOfCourse);
+        TextView etDayOfWeek = dialogView.findViewById(R.id.etDayOfWeek);
+        TextView etTimeOfCourse = dialogView.findViewById(R.id.etTimeOfCourse);
         EditText etCapacity = dialogView.findViewById(R.id.etCapacity);
         EditText etDuration = dialogView.findViewById(R.id.etDuration);
         EditText etPrice = dialogView.findViewById(R.id.etPrice);
@@ -178,46 +236,33 @@ public class CourseDetailActivity extends AppCompatActivity {
             etPrice.setText(String.valueOf(yogaCourse.getPrice()));
             etTypeOfClass.setText(yogaCourse.getType());
             etDescription.setText(yogaCourse.getDescription());
-
             loadImage(yogaCourse.getImageUrl(), ivEditImage);
         }
+
+        etTimeOfCourse.setOnClickListener(v -> showTimePickerDialog(etTimeOfCourse));
+        etDayOfWeek.setOnClickListener(v -> showDayOfWeekDialog(etDayOfWeek));
 
         btnChangeImage.setOnClickListener(v -> openFileChooser());
 
         builder.setPositiveButton("Save", (dialog, which) -> {
-            String dayOfWeek = etDayOfWeek.getText().toString();
-            String time = etTimeOfCourse.getText().toString();
-            int capacity = Integer.parseInt(etCapacity.getText().toString());
-            int duration = Integer.parseInt(etDuration.getText().toString());
-            double price = Double.parseDouble(etPrice.getText().toString());
-            String type = etTypeOfClass.getText().toString();
-            String description = etDescription.getText().toString();
+            yogaCourse.setDayOfWeek(etDayOfWeek.getText().toString());
+            yogaCourse.setTime(etTimeOfCourse.getText().toString());
+            yogaCourse.setCapacity(Integer.parseInt(etCapacity.getText().toString()));
+            yogaCourse.setDuration(Integer.parseInt(etDuration.getText().toString()));
+            yogaCourse.setPrice(Double.parseDouble(etPrice.getText().toString()));
+            yogaCourse.setType(etTypeOfClass.getText().toString());
+            yogaCourse.setDescription(etDescription.getText().toString());
 
-            // Nếu có ảnh mới được chọn, lưu nó
             if (newImageUri != null) {
                 currentImagePath = saveImage(newImageUri);
+                yogaCourse.setImageUrl(currentImagePath);
             }
 
-            // Khi cập nhật, chuyển trạng thái isSynced thành false và cập nhật biến yogaCourse
-            yogaCourse.setDayOfWeek(dayOfWeek);
-            yogaCourse.setTime(time);
-            yogaCourse.setCapacity(capacity);
-            yogaCourse.setDuration(duration);
-            yogaCourse.setPrice(price);
-            yogaCourse.setType(type);
-            yogaCourse.setDescription(description);
-            yogaCourse.setImageUrl(currentImagePath);
-            yogaCourse.setSynced(false); // Đặt trạng thái chưa đồng bộ
-
-            // Cập nhật vào database
+            yogaCourse.setSynced(false);
             dao.updateYogaCourse(yogaCourse);
-
-            // Cập nhật lại giao diện ngay sau khi lưu thay đổi
             displayCourseDetails(yogaCourse);
-
-            Toast.makeText(CourseDetailActivity.this, "Course updated successfully! Status set to Not Synced.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(CourseDetailActivity.this, "Course updated successfully!", Toast.LENGTH_SHORT).show();
         });
-
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
@@ -225,6 +270,47 @@ public class CourseDetailActivity extends AppCompatActivity {
         alertDialog.show();
     }
 
+    private void showDayOfWeekDialog(TextView etDayOfWeek) {
+        String[] daysOfWeek = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
+        boolean[] selectedDays = new boolean[daysOfWeek.length];
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Select Days of the Week");
+        builder.setMultiChoiceItems(daysOfWeek, selectedDays, (dialog, which, isChecked) -> {
+            if (isChecked) {
+                selectedDays[which] = true;
+            } else {
+                selectedDays[which] = false;
+            }
+        });
+        builder.setPositiveButton("OK", (dialog, which) -> {
+            StringBuilder selectedDaysStr = new StringBuilder();
+            for (int i = 0; i < selectedDays.length; i++) {
+                if (selectedDays[i]) {
+                    if (selectedDaysStr.length() > 0) {
+                        selectedDaysStr.append(", ");
+                    }
+                    selectedDaysStr.append(daysOfWeek[i]);
+                }
+            }
+            etDayOfWeek.setText(selectedDaysStr.toString());
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+        builder.setNeutralButton("Clear All", (dialog, which) -> etDayOfWeek.setText(""));
+        builder.show();
+    }
+
+    private void showTimePickerDialog(TextView etTimeOfCourse) {
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        int minute = calendar.get(Calendar.MINUTE);
+
+        TimePickerDialog timePickerDialog = new TimePickerDialog(this, (view, hourOfDay, minuteOfHour) -> {
+            String selectedTime = String.format("%02d:%02d", hourOfDay, minuteOfHour);
+            etTimeOfCourse.setText(selectedTime);
+        }, hour, minute, true);
+
+        timePickerDialog.show();
+    }
 
     private void openFileChooser() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -236,6 +322,7 @@ public class CourseDetailActivity extends AppCompatActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             newImageUri = data.getData();
             getContentResolver().takePersistableUriPermission(newImageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
@@ -247,6 +334,10 @@ public class CourseDetailActivity extends AppCompatActivity {
                 e.printStackTrace();
                 Toast.makeText(this, "Failed to load image", Toast.LENGTH_SHORT).show();
             }
+        }
+
+        if (requestCode == ADD_CLASS_REQUEST_CODE && resultCode == RESULT_OK) {
+            loadClassInstances();
         }
     }
 
@@ -267,31 +358,208 @@ public class CourseDetailActivity extends AppCompatActivity {
         }
     }
 
-    private void pushCourseToFirestore(YogaCourse course) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance(); // Khởi tạo Firestore
+    private void pushCourseAndClassInstancesToFirestore(YogaCourse course, List<ClassInstance> classInstanceList) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
 
-        // Đẩy khóa học lên Firestore
-        db.collection("courses") // Chọn collection "courses"
-                .document(String.valueOf(course.getId())) // Đặt document theo id của khóa học
-                .set(course) // Đẩy toàn bộ thông tin khóa học lên Firestore
-                .addOnSuccessListener(aVoid -> {
-                    // Hiển thị thông báo đẩy thành công
-                    Toast.makeText(CourseDetailActivity.this, "Course pushed to Firestore successfully!", Toast.LENGTH_SHORT).show();
-                    // Đánh dấu trạng thái đã đẩy lên Firestore
-                    course.setSynced(true); // Đặt trạng thái đã đẩy thông tin
-                    dao.updateYogaCourse(course); // Cập nhật trạng thái isSynced trong SQLite
-                    displayCourseDetails(course); // Cập nhật hiển thị chi tiết khóa học
-                })
-                .addOnFailureListener(e -> {
-                    // Nếu đẩy lên Firestore thất bại
-                    Toast.makeText(CourseDetailActivity.this, "Failed to push course to Firestore!", Toast.LENGTH_SHORT).show();
-                });
+        // Bắt đầu một batch write
+        WriteBatch batch = db.batch();
+
+        // Tạo tài liệu cho khóa học
+        DocumentReference courseRef = db.collection("courses").document(String.valueOf(course.getId()));
+        batch.set(courseRef, course);
+
+        // Tạo tài liệu cho từng class instance
+        for (ClassInstance classInstance : classInstanceList) {
+            DocumentReference classInstanceRef = courseRef.collection("class_instances").document(String.valueOf(classInstance.getId()));
+            batch.set(classInstanceRef, classInstance);
+        }
+
+        // Thực hiện batch write
+        batch.commit().addOnSuccessListener(aVoid -> {
+            Toast.makeText(CourseDetailActivity.this, "Course and class instances pushed to Firestore successfully!", Toast.LENGTH_SHORT).show();
+            course.setSynced(true);
+            dao.updateYogaCourse(course);
+            displayCourseDetails(course);
+        }).addOnFailureListener(e -> {
+            Toast.makeText(CourseDetailActivity.this, "Failed to push course and class instances to Firestore!", Toast.LENGTH_SHORT).show();
+        });
     }
+
+
+    private void loadClassInstances() {
+        List<ClassInstance> classInstanceList = dao.getClassInstancesByCourseId(courseId);
+        ClassInstanceAdapter classInstanceAdapter = new ClassInstanceAdapter(classInstanceList,
+                classInstance -> showEditClassInstancePopup(classInstance), // Sự kiện khi nhấn để chỉnh sửa
+                classInstance -> showDeleteConfirmationDialog(classInstance)); // Sự kiện khi nhấn để xóa
+
+        recyclerViewClass.setAdapter(classInstanceAdapter);
+    }
+    private void showDeleteConfirmationDialog(ClassInstance classInstance) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Delete Class Instance");
+        builder.setMessage("Are you sure you want to delete this class instance?");
+
+        builder.setPositiveButton("Yes", (dialog, which) -> {
+            // Thực hiện xóa class instance từ cơ sở dữ liệu
+            dao.deleteClassInstance(classInstance.getId());
+            dao.markCourseAsNotSynced(courseId);
+            Toast.makeText(this, "Class instance deleted successfully!", Toast.LENGTH_SHORT).show();
+            // Làm mới danh sách sau khi xóa
+            loadClassInstances();
+            yogaCourse = dao.getYogaCourseById(courseId);
+            displayCourseDetails(yogaCourse);
+        });
+
+        builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+
+
+
+    private void showEditClassInstancePopup(ClassInstance classInstance) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_edit_class_instance, null);
+        builder.setView(dialogView);
+
+        EditText etName = dialogView.findViewById(R.id.etName);
+        Spinner spinnerDates = dialogView.findViewById(R.id.spinnerDates); // Sử dụng Spinner thay cho TextView
+        EditText etTeacher = dialogView.findViewById(R.id.etTeacher);
+        EditText etComments = dialogView.findViewById(R.id.etComments);
+
+        // Đặt giá trị ban đầu
+        etName.setText(classInstance.getName());
+        etTeacher.setText(classInstance.getTeacher());
+        etComments.setText(classInstance.getComments());
+
+        // Lấy danh sách các thứ mà khóa học diễn ra từ yogaCourse (giả sử là getDaysOfWeek())
+        List<String> courseDaysOfWeek =  yogaCourse.getDaysOfWeek();
+
+        // Lấy danh sách các ngày hợp lệ từ hôm nay đến 1 năm sau dựa trên các thứ đã chọn
+        List<String> validDates = generateValidDates(courseDaysOfWeek);
+
+        // Thiết lập adapter cho Spinner để hiển thị các ngày
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, validDates);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerDates.setAdapter(adapter);
+
+        // Đặt ngày hiện tại của class instance làm mặc định trong Spinner
+        int selectedDatePosition = validDates.indexOf(classInstance.getDate());
+        if (selectedDatePosition != -1) {
+            spinnerDates.setSelection(selectedDatePosition);
+        }
+
+        builder.setPositiveButton("Save", (dialog, which) -> {
+            // Cập nhật lại giá trị sau khi người dùng chỉnh sửa
+            classInstance.setName(etName.getText().toString());
+            classInstance.setDate(spinnerDates.getSelectedItem().toString()); // Lấy giá trị ngày từ Spinner
+            classInstance.setTeacher(etTeacher.getText().toString());
+            classInstance.setComments(etComments.getText().toString());
+
+            // Lưu thay đổi vào cơ sở dữ liệu
+            dao.updateClassInstance(classInstance);
+            dao.markCourseAsNotSynced(courseId);
+            yogaCourse = dao.getYogaCourseById(courseId);
+            displayCourseDetails(yogaCourse);
+            loadClassInstances();
+
+
+
+            Toast.makeText(CourseDetailActivity.this, "Class instance updated successfully!", Toast.LENGTH_SHORT).show();
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+
+    // Hàm này tạo danh sách các ngày hợp lệ từ hôm nay đến 1 năm sau dựa trên nhiều thứ trong tuần
+    private List<String> generateValidDates(List<String> courseDaysOfWeek) {
+        List<String> validDates = new ArrayList<>();
+        Calendar calendar = Calendar.getInstance(); // Ngày hiện tại
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
+        // Lặp qua các ngày từ hôm nay tới 1 năm sau
+        for (int i = 0; i < 365; i++) {
+            String dayOfWeek = getDayOfWeek(calendar);
+
+            // Kiểm tra xem ngày hiện tại có phải là một trong những thứ của khóa học không
+            if (courseDaysOfWeek.contains(dayOfWeek)) {
+                validDates.add(dateFormat.format(calendar.getTime()));
+            }
+            // Tăng ngày lên 1
+            calendar.add(Calendar.DAY_OF_YEAR, 1);
+        }
+
+        return validDates;
+    }
+
+
+    // Hàm để lấy thứ trong tuần từ Calendar
+    private String getDayOfWeek(Calendar calendar) {
+        int dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK);
+        switch (dayOfWeek) {
+            case Calendar.MONDAY:
+                return "Monday";
+            case Calendar.TUESDAY:
+                return "Tuesday";
+            case Calendar.WEDNESDAY:
+                return "Wednesday";
+            case Calendar.THURSDAY:
+                return "Thursday";
+            case Calendar.FRIDAY:
+                return "Friday";
+            case Calendar.SATURDAY:
+                return "Saturday";
+            case Calendar.SUNDAY:
+                return "Sunday";
+            default:
+                return "";
+        }
+    }
+
+
+
+
+    private void filterClassInstances(String query) {
+        List<ClassInstance> classInstanceList = dao.getClassInstancesByCourseId(courseId);
+        List<ClassInstance> filteredList = new ArrayList<>();
+
+        for (ClassInstance classInstance : classInstanceList) {
+            // Kiểm tra xem query có nằm trong tên lớp hoặc tên giáo viên không
+            if (classInstance.getName().toLowerCase().contains(query.toLowerCase()) ||
+                    classInstance.getTeacher().toLowerCase().contains(query.toLowerCase())) {
+                filteredList.add(classInstance);
+            }
+        }
+
+        // Cập nhật adapter của RecyclerView với danh sách đã lọc
+        ClassInstanceAdapter classInstanceAdapter = new ClassInstanceAdapter(filteredList,
+                classInstance -> showEditClassInstancePopup(classInstance), // Sự kiện chỉnh sửa
+                classInstance -> showDeleteConfirmationDialog(classInstance)); // Sự kiện xóa
+
+        recyclerViewClass.setAdapter(classInstanceAdapter);
+
+    }
+
 
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         dao.close();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        yogaCourse = dao.getYogaCourseById(courseId);
+        displayCourseDetails(yogaCourse);
+        loadClassInstances();
     }
 }

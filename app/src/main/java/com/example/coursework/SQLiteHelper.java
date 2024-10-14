@@ -5,8 +5,8 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 public class SQLiteHelper extends SQLiteOpenHelper {
-    private static final int DATABASE_VERSION = 2; // Cập nhật phiên bản cơ sở dữ liệu
     private static final String DATABASE_NAME = "YogaCourseDB";
+    private static final int DATABASE_VERSION = 1;
 
     public SQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -14,7 +14,7 @@ public class SQLiteHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Tạo bảng mới
+        // Tạo bảng YogaCourse
         db.execSQL("CREATE TABLE YogaCourse (" +
                 "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 "dayOfWeek TEXT, " +
@@ -25,14 +25,23 @@ public class SQLiteHelper extends SQLiteOpenHelper {
                 "type TEXT, " +
                 "description TEXT, " +
                 "imageUrl TEXT, " +
-                "isSynced INTEGER DEFAULT 0)"); // Thêm cột isSynced mặc định là 0
+                "isSynced INTEGER DEFAULT 0)");
+
+        // Tạo bảng ClassInstances
+        db.execSQL("CREATE TABLE ClassInstances (" +
+                "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                "courseId INTEGER, " +
+                "date TEXT, " +
+                "name TEXT, " +
+                "teacher TEXT, " +
+                "comments TEXT, " +
+                "FOREIGN KEY(courseId) REFERENCES YogaCourse(id))");
     }
 
     @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        if (oldVersion < 2) {
-            // Thêm cột isSynced nếu chưa có
-            db.execSQL("ALTER TABLE YogaCourse ADD COLUMN isSynced INTEGER DEFAULT 0");
-        }
+    public void onUpgrade(SQLiteDatabase sqLiteDatabase, int i, int i1) {
+
     }
+
+
 }

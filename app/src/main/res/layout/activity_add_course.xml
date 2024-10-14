@@ -81,15 +81,16 @@
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
-        <EditText
+        <TextView
             android:id="@+id/etDayOfWeek"
             android:layout_width="match_parent"
-            android:layout_height="40dp"
-            android:hint="Monday, Tuesday, etc ..."
-            android:background="@drawable/edit_text_background"
+            android:layout_height="wrap_content"
+            android:hint="Select days of the week"
             android:padding="10dp"
-            android:textSize="14sp"
-            android:layout_marginBottom="12dp" />
+            android:background="@drawable/edit_text_background"
+            android:textSize="16sp"
+            android:focusable="true"
+            android:clickable="true" />
 
         <!-- Time of course -->
         <TextView
@@ -100,7 +101,7 @@
             android:textSize="14sp"
             android:layout_marginBottom="8dp" />
 
-        <EditText
+        <TextView
             android:id="@+id/etTimeOfCourse"
             android:layout_width="match_parent"
             android:layout_height="40dp"

@@ -1,5 +1,8 @@
 package com.example.coursework;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class YogaCourse {
     private int id;
     private String dayOfWeek;
@@ -33,6 +36,17 @@ public class YogaCourse {
     public String getDayOfWeek() {
         return dayOfWeek;
     }
+    public List<String> getDaysOfWeek() {
+        List<String> selectedDays = new ArrayList<>();
+        if (dayOfWeek != null && !dayOfWeek.isEmpty()) {
+            String[] daysArray = dayOfWeek.split(", "); // Chia chuỗi thành các phần tử
+            for (String day : daysArray) {
+                selectedDays.add(day.trim()); // Loại bỏ khoảng trắng
+            }
+        }
+        return selectedDays;
+    }
+
 
     public void setDayOfWeek(String dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
