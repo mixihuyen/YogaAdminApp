@@ -35,6 +35,8 @@ import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.WriteBatch;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import coil.Coil;
 import coil.ImageLoader;
@@ -197,12 +199,11 @@ public class CourseDetailActivity extends AppCompatActivity {
         }
     }
 
-    private void loadImage(String imagePath, ImageView imageView) {
-        if (imagePath != null && !imagePath.isEmpty()) {
-            File file = new File(imagePath);
+    private void loadImage(String imageUrl, ImageView imageView) {
+        if (imageUrl != null && !imageUrl.isEmpty()) {
             ImageLoader imageLoader = Coil.imageLoader(this);
             ImageRequest request = new ImageRequest.Builder(this)
-                    .data(file)
+                    .data(imageUrl)
                     .target(imageView)
                     .placeholder(R.drawable.image)
                     .build();
@@ -254,15 +255,14 @@ public class CourseDetailActivity extends AppCompatActivity {
             yogaCourse.setDescription(etDescription.getText().toString());
 
             if (newImageUri != null) {
-                currentImagePath = saveImage(newImageUri);
-                yogaCourse.setImageUrl(currentImagePath);
-            }
+                uploadImageToFirebaseStorage(newImageUri);
+            } else {
 
-            yogaCourse.setSynced(false);
-            dao.updateYogaCourse(yogaCourse);
-            displayCourseDetails(yogaCourse);
-            Toast.makeText(CourseDetailActivity.this, "Course updated successfully!", Toast.LENGTH_SHORT).show();
-        });
+                yogaCourse.setSynced(false);
+                dao.updateYogaCourse(yogaCourse);
+                displayCourseDetails(yogaCourse);
+                Toast.makeText(CourseDetailActivity.this, "Course updated successfully!", Toast.LENGTH_SHORT).show();
+            } });
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
 
@@ -341,47 +341,47 @@ public class CourseDetailActivity extends AppCompatActivity {
         }
     }
 
-    private String saveImage(Uri imageUri) {
-        try {
-            InputStream inputStream = getContentResolver().openInputStream(imageUri);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            String fileName = "course_" + System.currentTimeMillis() + ".jpg";
-            File file = new File(getFilesDir(), fileName);
-            FileOutputStream fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-            fos.close();
-            return file.getAbsolutePath();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Failed to save image", Toast.LENGTH_SHORT).show();
-            return null;
-        }
+    private void uploadImageToFirebaseStorage(Uri imageUri) {
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference().child("course_images/" + System.currentTimeMillis() + ".jpg");
+        storageRef.putFile(imageUri).addOnSuccessListener(taskSnapshot ->
+                storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                    yogaCourse.setImageUrl(uri.toString());
+                    dao.updateYogaCourse(yogaCourse);
+                    displayCourseDetails(yogaCourse);
+                    Toast.makeText(this, "Course updated successfully!", Toast.LENGTH_SHORT).show();
+                }).addOnFailureListener(e -> Toast.makeText(this, "Failed to get image URL!", Toast.LENGTH_SHORT).show())
+        ).addOnFailureListener(e -> Toast.makeText(this, "Failed to upload image!", Toast.LENGTH_SHORT).show());
     }
 
     private void pushCourseAndClassInstancesToFirestore(YogaCourse course, List<ClassInstance> classInstanceList) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-        // Bắt đầu một batch write
         WriteBatch batch = db.batch();
 
-        // Tạo tài liệu cho khóa học
         DocumentReference courseRef = db.collection("courses").document(String.valueOf(course.getId()));
         batch.set(courseRef, course);
 
-        // Tạo tài liệu cho từng class instance
-        for (ClassInstance classInstance : classInstanceList) {
-            DocumentReference classInstanceRef = courseRef.collection("class_instances").document(String.valueOf(classInstance.getId()));
-            batch.set(classInstanceRef, classInstance);
+        // Delete instances marked for deletion
+        for (ClassInstance instance : instancesToDelete) {
+            DocumentReference instanceRef = courseRef.collection("class_instances").document(String.valueOf(instance.getId()));
+            batch.delete(instanceRef);
         }
 
-        // Thực hiện batch write
+        // Add non-deleted instances to Firestore
+        for (ClassInstance classInstance : classInstanceList) {
+            if (!instancesToDelete.contains(classInstance)) {
+                DocumentReference instanceRef = courseRef.collection("class_instances").document(String.valueOf(classInstance.getId()));
+                batch.set(instanceRef, classInstance);
+            }
+        }
+
         batch.commit().addOnSuccessListener(aVoid -> {
-            Toast.makeText(CourseDetailActivity.this, "Course and class instances pushed to Firestore successfully!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Changes pushed to Firestore successfully!", Toast.LENGTH_SHORT).show();
+            instancesToDelete.clear(); // Clear deletion list after successful push
             course.setSynced(true);
             dao.updateYogaCourse(course);
             displayCourseDetails(course);
         }).addOnFailureListener(e -> {
-            Toast.makeText(CourseDetailActivity.this, "Failed to push course and class instances to Firestore!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Failed to push changes to Firestore!", Toast.LENGTH_SHORT).show();
         });
     }
 
@@ -394,27 +394,27 @@ public class CourseDetailActivity extends AppCompatActivity {
 
         recyclerViewClass.setAdapter(classInstanceAdapter);
     }
+    private List<ClassInstance> instancesToDelete = new ArrayList<>();
+
+    // On delete button click, add instance to deletion list and remove from local database
     private void showDeleteConfirmationDialog(ClassInstance classInstance) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Delete Class Instance");
-        builder.setMessage("Are you sure you want to delete this class instance?");
-
-        builder.setPositiveButton("Yes", (dialog, which) -> {
-            // Thực hiện xóa class instance từ cơ sở dữ liệu
-            dao.deleteClassInstance(classInstance.getId());
-            dao.markCourseAsNotSynced(courseId);
-            Toast.makeText(this, "Class instance deleted successfully!", Toast.LENGTH_SHORT).show();
-            // Làm mới danh sách sau khi xóa
-            loadClassInstances();
-            yogaCourse = dao.getYogaCourseById(courseId);
-            displayCourseDetails(yogaCourse);
-        });
-
-        builder.setNegativeButton("No", (dialog, which) -> dialog.dismiss());
-
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Class Instance")
+                .setMessage("Are you sure you want to delete this class instance?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    instancesToDelete.add(classInstance);
+                    dao.deleteClassInstance(classInstance.getId()); // Delete from local DB immediately
+                    dao.markCourseAsNotSynced(courseId); // Mark course to sync again
+                    loadClassInstances(); // Refresh UI
+                    Toast.makeText(this, "Class instance deleted successfully!", Toast.LENGTH_SHORT).show();
+                    yogaCourse = dao.getYogaCourseById(courseId);
+                    displayCourseDetails(yogaCourse);
+                })
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
+                .show();
     }
+
+
 
 
 

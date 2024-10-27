@@ -6,18 +6,16 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.io.File;
-import java.util.List;
-
 import coil.Coil;
 import coil.ImageLoader;
 import coil.request.ImageRequest;
+
+import java.util.List;
 
 public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseViewHolder> {
 
@@ -32,7 +30,7 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseView
     @Override
     public CourseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         context = parent.getContext();
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_course, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_course, parent, false);
         return new CourseViewHolder(view);
     }
 
@@ -42,15 +40,16 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseView
         holder.titleView.setText(course.getType());
 
         if (course.getImageUrl() != null && !course.getImageUrl().isEmpty()) {
-            File file = new File(course.getImageUrl());
+            // Load the image from the URL using Coil
             ImageLoader imageLoader = Coil.imageLoader(context);
             ImageRequest request = new ImageRequest.Builder(context)
-                    .data(file)
+                    .data(course.getImageUrl()) // Use the URL directly
                     .target(holder.imageView)
-                    .placeholder(R.drawable.image)
+                    .placeholder(R.drawable.image) // Placeholder image
                     .build();
             imageLoader.enqueue(request);
         } else {
+            // Set a default image if no URL is available
             holder.imageView.setImageResource(R.drawable.image);
         }
 
@@ -71,9 +70,7 @@ public class CourseAdapter extends RecyclerView.Adapter<CourseAdapter.CourseView
         notifyDataSetChanged();
     }
 
-
     static class CourseViewHolder extends RecyclerView.ViewHolder {
-
         ImageView imageView;
         TextView titleView;
 

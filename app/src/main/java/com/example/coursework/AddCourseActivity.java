@@ -30,6 +30,10 @@ import java.util.Calendar;
 
 import android.app.AlertDialog;
 
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
 public class AddCourseActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;
 
@@ -40,7 +44,6 @@ public class AddCourseActivity extends AppCompatActivity {
     private Uri imageUri;
     private YogaCourseDAO dao;
 
-    // Mảng các ngày trong tuần và mảng boolean để lưu trạng thái được chọn
     private String[] daysOfWeek = {"Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"};
     private boolean[] selectedDays = new boolean[daysOfWeek.length];
     private ArrayList<String> selectedDayList = new ArrayList<>();
@@ -51,10 +54,8 @@ public class AddCourseActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_course);
 
         ImageButton btnBack = findViewById(R.id.btnBack);
-
-        // Khởi tạo các thành phần giao diện
         etDayOfWeek = findViewById(R.id.etDayOfWeek);
-        etTimeOfCourse = findViewById(R.id.etTimeOfCourse);  // Sử dụng TextView cho TimeOfCourse
+        etTimeOfCourse = findViewById(R.id.etTimeOfCourse);
         etCapacity = findViewById(R.id.etCapacity);
         etDuration = findViewById(R.id.etDuration);
         etPrice = findViewById(R.id.etPrice);
@@ -64,69 +65,46 @@ public class AddCourseActivity extends AppCompatActivity {
         btnSelectImage = findViewById(R.id.btnSelectImage);
         ivSelectedImage = findViewById(R.id.ivSelectedImage);
 
-
-        // Chỉ cho phép nhập số cho Capacity, Duration và Price
         etCapacity.setInputType(InputType.TYPE_CLASS_NUMBER);
         etDuration.setInputType(InputType.TYPE_CLASS_NUMBER);
         etPrice.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
-        // Khởi tạo DAO để lưu vào local database
         dao = new YogaCourseDAO(this);
 
-        // Khi người dùng nhấn vào etDayOfWeek (TextView), hiển thị dialog để chọn nhiều ngày
         etDayOfWeek.setOnClickListener(v -> showDayOfWeekDialog());
-
-        // Khi người dùng nhấn vào etTimeOfCourse (TextView), hiển thị TimePickerDialog
         etTimeOfCourse.setOnClickListener(v -> showTimePickerDialog());
-
-        // Xử lý nút chọn ảnh
         btnSelectImage.setOnClickListener(v -> openFileChooser());
-
         btnBack.setOnClickListener(v -> finish());
 
-        // Xử lý nút lưu thông tin khóa học
         btnSubmit.setOnClickListener(v -> {
             if (validateFields()) {
                 if (imageUri != null) {
-                    try {
-                        InputStream inputStream = getContentResolver().openInputStream(imageUri);
-                        Bitmap selectedImage = BitmapFactory.decodeStream(inputStream);
-                        String imagePath = saveImageToInternalStorage(selectedImage);
-                        if (imagePath != null) {
-                            saveYogaClassToLocalDatabase(imagePath);
-                        }
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                        Toast.makeText(this, "Failed to save image locally", Toast.LENGTH_SHORT).show();
-                    }
+                    uploadImageToFirebaseStorage();
                 } else {
-                    saveYogaClassToLocalDatabase(null);
+                    saveCourseData(null);
                 }
             }
         });
     }
 
-    // Hàm hiển thị TimePickerDialog để chọn giờ và hiển thị lên TextView
     private void showTimePickerDialog() {
         Calendar calendar = Calendar.getInstance();
         int hour = calendar.get(Calendar.HOUR_OF_DAY);
         int minute = calendar.get(Calendar.MINUTE);
 
         TimePickerDialog timePickerDialog = new TimePickerDialog(this, (view, hourOfDay, minuteOfHour) -> {
-            String selectedTime = String.format("%02d:%02d", hourOfDay, minuteOfHour);  // Định dạng giờ và phút
-            etTimeOfCourse.setText(selectedTime);  // Hiển thị thời gian đã chọn lên TextView
-        }, hour, minute, true);  // true là 24-hour format
+            String selectedTime = String.format("%02d:%02d", hourOfDay, minuteOfHour);
+            etTimeOfCourse.setText(selectedTime);
+        }, hour, minute, true);
 
         timePickerDialog.show();
     }
 
-    // Hàm hiển thị dialog để chọn nhiều ngày trong tuần
     private void showDayOfWeekDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Select Days of the Week");
 
         builder.setMultiChoiceItems(daysOfWeek, selectedDays, (dialog, which, isChecked) -> {
-            // Cập nhật trạng thái được chọn trong mảng boolean
             if (isChecked) {
                 selectedDayList.add(daysOfWeek[which]);
             } else {
@@ -134,18 +112,13 @@ public class AddCourseActivity extends AppCompatActivity {
             }
         });
 
-        builder.setPositiveButton("OK", (dialog, which) -> {
-            // Cập nhật trường etDayOfWeek với các ngày đã chọn
-            etDayOfWeek.setText(TextUtils.join(", ", selectedDayList));
-        });
+        builder.setPositiveButton("OK", (dialog, which) -> etDayOfWeek.setText(TextUtils.join(", ", selectedDayList)));
 
         builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
-
         builder.setNeutralButton("Clear All", (dialog, which) -> {
-            // Bỏ chọn tất cả các ngày
             Arrays.fill(selectedDays, false);
             selectedDayList.clear();
-            etDayOfWeek.setText(""); // Xóa hiển thị trên TextView
+            etDayOfWeek.setText("");
         });
 
         builder.show();
@@ -174,32 +147,34 @@ public class AddCourseActivity extends AppCompatActivity {
         }
     }
 
-    private String saveImageToInternalStorage(Bitmap bitmap) {
-        try {
-            String fileName = "yoga_course_" + System.currentTimeMillis() + ".jpg";
-            File file = new File(getFilesDir(), fileName);
-            FileOutputStream fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-            fos.close();
-            return file.getAbsolutePath();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+    private void uploadImageToFirebaseStorage() {
+        if (imageUri != null) {
+            StorageReference storageRef = FirebaseStorage.getInstance().getReference().child("course_images/" + System.currentTimeMillis() + ".jpg");
+            storageRef.putFile(imageUri)
+                    .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                        String imageUrl = uri.toString();
+                        saveCourseData(imageUrl); // Lưu thông tin khóa học với URL ảnh
+                    }))
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to upload image", Toast.LENGTH_SHORT).show();
+                    });
+        } else {
+            Toast.makeText(this, "No image selected", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void saveYogaClassToLocalDatabase(@Nullable String imagePath) {
+    private void saveCourseData(@Nullable String imageUrl) {
         try {
             String dayOfWeek = etDayOfWeek.getText().toString();
-            String time = etTimeOfCourse.getText().toString();  // Lấy thời gian từ TextView
+            String time = etTimeOfCourse.getText().toString();
             int capacity = Integer.parseInt(etCapacity.getText().toString());
             int duration = Integer.parseInt(etDuration.getText().toString());
             double price = Double.parseDouble(etPrice.getText().toString());
             String type = etTypeOfClass.getText().toString();
             String description = etDescription.getText().toString();
 
-            // Lưu khóa học vào cơ sở dữ liệu
-            dao.insertYogaCourse(dayOfWeek, time, capacity, duration, price, type, description, imagePath);
+            // Lưu khóa học vào cơ sở dữ liệu với URL ảnh từ Firebase Storage
+            dao.insertYogaCourse(dayOfWeek, time, capacity, duration, price, type, description, imageUrl);
 
             Toast.makeText(this, "Course added successfully!", Toast.LENGTH_SHORT).show();
             Intent intent = new Intent(AddCourseActivity.this, MainActivity.class);

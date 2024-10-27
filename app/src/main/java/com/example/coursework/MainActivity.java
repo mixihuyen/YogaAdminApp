@@ -25,7 +25,7 @@ public class MainActivity extends AppCompatActivity {
     private YogaCourseDAO dao;
     private List<YogaCourse> yogaCourses;
     private CourseAdapter courseAdapter;
-    private static final int COURSE_DETAIL_REQUEST_CODE = 1001; // Định nghĩa COURSE_DETAIL_REQUEST_CODE
+    private static final int COURSE_DETAIL_REQUEST_CODE = 1001;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,16 +37,17 @@ public class MainActivity extends AppCompatActivity {
         fabAddCourse = findViewById(R.id.fabAddCourse);
 
         dao = new YogaCourseDAO(this);
-        yogaCourses = dao.getAllYogaCourses();
 
-        // Thiết lập GridLayoutManager với 2 cột
-        recyclerViewCourses.setLayoutManager(new GridLayoutManager(this, 2));
+        // Đồng bộ dữ liệu Firestore nếu cần thiết và khởi tạo RecyclerView
+        dao.syncDataFromFirestoreIfNeeded(() -> {
+            yogaCourses = dao.getAllYogaCourses();
 
-        courseAdapter = new CourseAdapter(yogaCourses);
-        recyclerViewCourses.setAdapter(courseAdapter);
+            // Thiết lập layout và adapter cho RecyclerView
+            setupRecyclerView();
+            loadCourses(""); // Hiển thị các khóa học ngay khi đồng bộ hoàn tất
+        });
 
-        loadCourses("");
-
+        // Tìm kiếm khóa học khi văn bản thay đổi
         searchBar.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -60,12 +61,26 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
+        // Chuyển sang màn hình thêm khóa học khi nhấn vào nút FAB
         fabAddCourse.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddCourseActivity.class);
-            startActivityForResult(intent, COURSE_DETAIL_REQUEST_CODE); // Dùng startActivityForResult để nhận kết quả từ AddCourseActivity
+            startActivityForResult(intent, COURSE_DETAIL_REQUEST_CODE);
         });
     }
 
+    private void setupRecyclerView() {
+        // Kiểm tra danh sách khóa học, khởi tạo nếu cần
+        if (yogaCourses == null) {
+            yogaCourses = new ArrayList<>();
+        }
+
+        // Thiết lập RecyclerView với GridLayoutManager
+        recyclerViewCourses.setLayoutManager(new GridLayoutManager(this, 2));
+        courseAdapter = new CourseAdapter(yogaCourses);
+        recyclerViewCourses.setAdapter(courseAdapter);
+    }
+
+    // Tải và hiển thị danh sách khóa học dựa trên bộ lọc tìm kiếm
     private void loadCourses(String filter) {
         if (yogaCourses == null || yogaCourses.isEmpty()) {
             Toast.makeText(this, "No courses available", Toast.LENGTH_SHORT).show();
@@ -73,9 +88,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         List<YogaCourse> filteredCourses = filterCourses(filter);
-        courseAdapter.updateCourses(filteredCourses);
+        if (courseAdapter != null) {
+            courseAdapter.updateCourses(filteredCourses);
+            courseAdapter.notifyDataSetChanged();
+        }
     }
 
+    // Lọc khóa học dựa trên chuỗi tìm kiếm
     private List<YogaCourse> filterCourses(String filter) {
         if (filter.isEmpty()) {
             return yogaCourses;
@@ -93,10 +112,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        yogaCourses = dao.getAllYogaCourses();
-        courseAdapter.updateCourses(yogaCourses); // Cập nhật adapter
-        courseAdapter.notifyDataSetChanged(); // Thông báo cho RecyclerView cập nhật giao diện
-        loadCourses("");
+        if (dao != null) {
+            yogaCourses = dao.getAllYogaCourses();
+            loadCourses("");
+        }
     }
 
     @Override
@@ -111,10 +130,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (requestCode == COURSE_DETAIL_REQUEST_CODE && resultCode == RESULT_OK) {
             yogaCourses = dao.getAllYogaCourses();
-            courseAdapter.updateCourses(yogaCourses);
-            courseAdapter.notifyDataSetChanged();
-            // Làm mới danh sách khóa học từ SQLite
-            loadCourses("");
+            loadCourses(""); // Làm mới danh sách khóa học từ SQLite
         }
     }
 }

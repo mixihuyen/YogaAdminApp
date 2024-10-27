@@ -4,6 +4,10 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
+
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -176,6 +180,89 @@ public class YogaCourseDAO {
         database.update("YogaCourse", values, "id = ?", new String[]{String.valueOf(courseId)});
     }
 
+    public void syncDataFromFirestoreIfNeeded(Runnable onComplete) {
+        openDatabase();
+        Cursor cursor = database.rawQuery("SELECT COUNT(*) FROM YogaCourse", null);
+        cursor.moveToFirst();
+        int count = cursor.getInt(0);
+        cursor.close();
+
+        if (count == 0) {
+            FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+            Log.d("SyncStatus", "Starting sync from Firestore.");
+
+            firestore.collection("courses").get()
+                    .addOnSuccessListener(queryDocumentSnapshots -> {
+                        if (!queryDocumentSnapshots.isEmpty()) {
+                            Log.d("SyncStatus", "Fetched " + queryDocumentSnapshots.size() + " documents.");
+                        } else {
+                            Log.d("SyncStatus", "No documents found in Firestore collection.");
+                        }
+
+                        for (DocumentSnapshot document : queryDocumentSnapshots) {
+                            String dayOfWeek = document.getString("dayOfWeek");
+                            String time = document.getString("time");
+                            Long capacity = document.getLong("capacity");
+                            Long duration = document.getLong("duration");
+                            Double price = document.getDouble("price");
+                            String type = document.getString("type");
+                            String description = document.getString("description");
+                            String imageUrl = document.getString("imageUrl");
+
+
+                            if (dayOfWeek != null && time != null && capacity != null && duration != null && price != null && type != null) {
+                                long courseId = insertYogaCourse(dayOfWeek, time, capacity.intValue(), duration.intValue(), price, type, description, imageUrl);
+                                Log.d("SyncStatus", "Inserted course: " + type);
+
+                                // Synchronize class instances for each course
+                                document.getReference().collection("class_instances").get()
+                                        .addOnSuccessListener(classInstances -> {
+                                            for (DocumentSnapshot classDoc : classInstances) {
+                                                String name = classDoc.getString("name");
+                                                String date = classDoc.getString("date");
+                                                String teacher = classDoc.getString("teacher");
+                                                String comments = classDoc.getString("comments");
+
+                                                if (name != null && date != null && teacher != null) {
+                                                    addClassInstance((int) courseId, name, date, teacher, comments);
+                                                    Log.d("SyncStatus", "Inserted class instance: " + name + " for course " + type);
+                                                } else {
+                                                    Log.d("SyncStatus", "Class instance missing some fields, skipping.");
+                                                }
+                                            }
+                                            YogaCourse course = getYogaCourseById((int) courseId);
+                                            course.setSynced(true);
+                                            updateYogaCourse(course); // Lưu lại trạng thái đồng bộ vào SQLite
+                                        })
+                                        .addOnFailureListener(e -> Log.e("SyncError", "Failed to fetch class instances", e));
+                            } else {
+                                Log.d("SyncStatus", "Document missing some fields, skipping.");
+                            }
+                        }
+
+                        // Call onComplete callback after synchronization is finished
+                        if (onComplete != null) {
+                            onComplete.run();
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("SyncError", "Failed to sync data from Firestore", e);
+                        // Ensure onComplete is called even if sync fails
+                        if (onComplete != null) {
+                            onComplete.run();
+                        }
+                    });
+        } else {
+            Log.d("SyncStatus", "Database already has data, skipping sync.");
+            if (onComplete != null) {
+                onComplete.run(); // Call onComplete immediately if no sync is needed
+            }
+        }
+    }
+
+
+
+
 
 
 
@@ -186,5 +273,4 @@ public class YogaCourseDAO {
             database.close();
         }
     }
-
 }

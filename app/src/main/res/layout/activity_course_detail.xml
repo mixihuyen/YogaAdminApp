@@ -304,7 +304,7 @@
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewClass"
                 android:layout_width="match_parent"
-                android:layout_height="384dp"
+                android:layout_height="700dp"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="380dp"
                 android:layout_weight="1" />
