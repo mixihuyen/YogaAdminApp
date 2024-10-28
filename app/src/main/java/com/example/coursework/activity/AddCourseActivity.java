@@ -1,4 +1,4 @@
-package com.example.coursework;
+package com.example.coursework.activity;
 
 import android.app.TimePickerDialog;
 import android.content.Intent;
@@ -8,20 +8,16 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.text.TextUtils;
-import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.TimePicker;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -30,9 +26,10 @@ import java.util.Calendar;
 
 import android.app.AlertDialog;
 
+import com.example.coursework.R;
+import com.example.coursework.YogaCourseDAO;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 public class AddCourseActivity extends AppCompatActivity {
     private static final int PICK_IMAGE_REQUEST = 1;

@@ -1,4 +1,4 @@
-package com.example.coursework;
+package com.example.coursework.adapter;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -7,6 +7,10 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.coursework.R;
+import com.example.coursework.model.ClassInstance;
+
 import java.util.List;
 
 public class ClassInstanceAdapter extends RecyclerView.Adapter<ClassInstanceAdapter.ClassInstanceViewHolder> {

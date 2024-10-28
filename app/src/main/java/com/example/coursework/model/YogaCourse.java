@@ -1,4 +1,4 @@
-package com.example.coursework;
+package com.example.coursework.model;
 
 import java.util.ArrayList;
 import java.util.List;

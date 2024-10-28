@@ -1,4 +1,4 @@
-package com.example.coursework;
+package com.example.coursework.activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -12,6 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.coursework.R;
+import com.example.coursework.YogaCourseDAO;
+import com.example.coursework.adapter.CourseAdapter;
+import com.example.coursework.model.YogaCourse;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;

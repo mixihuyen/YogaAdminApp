@@ -1,4 +1,4 @@
-package com.example.coursework;
+package com.example.coursework.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -10,6 +10,10 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.coursework.activity.CourseDetailActivity;
+import com.example.coursework.R;
+import com.example.coursework.model.YogaCourse;
 
 import coil.Coil;
 import coil.ImageLoader;

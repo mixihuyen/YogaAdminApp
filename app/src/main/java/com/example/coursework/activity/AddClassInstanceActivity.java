@@ -1,6 +1,5 @@
-package com.example.coursework;
+package com.example.coursework.activity;
 
-import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
@@ -11,6 +10,10 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.coursework.R;
+import com.example.coursework.YogaCourseDAO;
+import com.example.coursework.model.YogaCourse;
 
 import java.util.ArrayList;
 import java.util.Calendar;

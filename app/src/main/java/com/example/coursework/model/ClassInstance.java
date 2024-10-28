@@ -1,4 +1,4 @@
-package com.example.coursework;
+package com.example.coursework.model;
 
 public class ClassInstance {
     private int id;
@@ -6,7 +6,6 @@ public class ClassInstance {
     private String date;
     private String teacher;
     private String comments;
-    private boolean isDeleted = false;
 
     // Constructor không tham số
     public ClassInstance() {
@@ -22,13 +21,7 @@ public class ClassInstance {
     }
 
     // Getter và Setter cho từng thuộc tính
-    public boolean isDeleted() {
-        return isDeleted;
-    }
 
-    public void setDeleted(boolean deleted) {
-        this.isDeleted = deleted;
-    }
     public int getId() {
         return id;
     }
