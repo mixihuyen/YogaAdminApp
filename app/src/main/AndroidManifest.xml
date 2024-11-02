@@ -29,6 +29,8 @@
         <activity android:name=".activity.AddCourseActivity"/>
         <activity android:name=".activity.CourseDetailActivity" />
         <activity android:name=".activity.AddClassInstanceActivity" />
+        <activity android:name=".activity.UserActivity" />
+        <activity android:name=".activity.OrderActivity" />
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />

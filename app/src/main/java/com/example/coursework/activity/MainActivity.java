@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -39,6 +40,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewCourses = findViewById(R.id.recyclerViewCourses);
         searchBar = findViewById(R.id.searchBar);
         fabAddCourse = findViewById(R.id.fabAddCourse);
+        ImageView iconHome = findViewById(R.id.iconHome);
+        ImageView iconUser = findViewById(R.id.iconUser);
+        ImageView iconOrder = findViewById(R.id.iconOrder);
 
         dao = new YogaCourseDAO(this);
 
@@ -69,6 +73,20 @@ public class MainActivity extends AppCompatActivity {
         fabAddCourse.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddCourseActivity.class);
             startActivityForResult(intent, COURSE_DETAIL_REQUEST_CODE);
+        });
+        iconHome.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, MainActivity.class);
+            startActivity(intent);
+        });
+        iconUser.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, UserActivity.class);
+            startActivity(intent);
+        });
+
+         //Điều hướng đến trang Order
+        iconOrder.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, OrderActivity.class);
+            startActivity(intent);
         });
     }
 
