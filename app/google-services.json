@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "328270878043",
+    "firebase_url": "https://courscework-default-rtdb.firebaseio.com",
+    "project_id": "courscework",
+    "storage_bucket": "courscework.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:328270878043:android:90dfa61d06bc232ceff67e",
+        "android_client_info": {
+          "package_name": "com.example.coursework"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_vwp24RuUaFGhKv7tT5flhjpZi-3gkWw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
