@@ -3,6 +3,12 @@
 ## ✨ Project Overview
 Welcome to the **Yoga Admin App**, a vibrant Android-native application crafted to make yoga class management a breeze! 🌟 This app empowers administrators to create, edit, and delete yoga courses and class instances with ease. Data is securely stored in **SQLite** and synced with **Firebase** for seamless cloud integration. With eye-catching image uploads, powerful search features, and detailed order tracking, this app is designed to deliver a delightful and intuitive experience. 🧘‍♀️
 
+
+📌 **GitHub Repository**: [mixihuyen/YogaAdminApp](https://github.com/mixihuyen/YogaAdminApp)  
+🎥 **Watch the Demo Video**: [DemoAppVideo](https://youtu.be/ZQ8zQI-Lv3g?si=Yk-VcPi8sfmDtIik)
+
+
+
 ## 🚀 Technologies Used
 - **Android Native (Java)**: The heart of the app, built with robust Java for Android. 🛠️
 - **SQLite**: Local database for storing course and class details. 📊
